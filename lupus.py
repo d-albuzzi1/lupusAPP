@@ -10,6 +10,7 @@ class Player:
         self.alive = True
         self.targeted = False
         self.protected = False
+        self.just_protected = False
         self.vote = None
 
     def __str__(self):
@@ -17,9 +18,14 @@ class Player:
 
 
 class Game:
+
     def __init__(self, player_names):
         self.players = [Player(name) for name in player_names]
-        self.roles = ['Lupo Mannaro', 'Villico', 'Veggente', 'Guardiano', 'Villico', 'Villico']
+        # RUOLI IMPLEMENTATI: Lupo Mannaro, Guardiano, Veggente, Medium, Indemoniato, Ragazzina
+        # self.roles = ['Lupo Mannaro', 'Lupo Mannaro', 'Veggente', 'Guardiano', 'Medium', 'Villico']
+        # self.roles = ['Lupo Mannaro', 'Lupo Mannaro', 'Veggente', 'Guardiano', 'Villico', 'Villico']
+        self.roles = ['Lupo Mannaro', 'Medium', 'Villico']
+        print(f"Ruoli in gioco: {self.roles}")
         self.assign_roles()
 
     def assign_roles(self):
@@ -28,20 +34,26 @@ class Game:
             player.role = role
             input(f"{player.name}, premi INVIO per vedere il tuo ruolo. (Assicurati che nessuno guardi!)")
             print(f"Il tuo ruolo è: {role}")
-            time.sleep(3)
+            time.sleep(1)
             os.system('cls' if os.name == 'nt' else 'clear')
 
     def get_alive_players(self):
         return [p for p in self.players if p.alive]
+    
+    def get_dead_players(self):
+        return [p for p in self.players if not p.alive]
 
-    def night_phase(self):
+    def night_phase(self, round_count):
         print("\n--- NOTTE ---")
+        print('Tutti chiudano gli occhi, mentre i lupi discutono su chi uccidere')
 
         for player in self.players:
             input(f"{player.name}, premi INVIO per proseguire. (Assicurati che nessuno guardi!)")
             print(f"Il tuo ruolo è: {player.role}")
 
-            if player.role == 'Villico':
+            # VILLICI, INDEMONIATO, RAGAZZINA
+            inactive_roles = ['Villico', 'Indemoniato', 'Ragazzina']
+            if player.role in inactive_roles:
                 if player.alive is True:
                     try:
                         index = int(input("Torna a dormire. Premi un numero per proseguire :"))
@@ -52,30 +64,37 @@ class Game:
                 time.sleep(2)
                 os.system('cls' if os.name == 'nt' else 'clear')
 
+            # LUPI MANNARI
             if player.role == 'Lupo Mannaro':
-                print("Lupi, scegliete la vittima. (Parlate tra di voi, poi uno solo inserisca)")
-                targets = [p for p in self.get_alive_players() if p.role != 'Lupo Mannaro']
-                for i, p in enumerate(targets):
-                    print(f"{i}. {p.name}")
-                try:
-                    index = int(input("Inserisci il numero del giocatore da uccidere: "))
-                except:
-                    print("Input non valido, verrà scelto in automatico lo 0")
-                    index = 0
-                victim = targets[index]
-                victim.targeted = True
+                if player.alive is True:
+                    print("Lupi, scegliete la vittima. (Parlate tra di voi, poi uno solo inserisca)")
+                    targets = [p for p in self.get_alive_players() if p.role != 'Lupo Mannaro']
+                    for i, p in enumerate(targets):
+                        print(f"{i+1}. {p.name}")
+                    try:
+                        index = int(input("Inserisci il numero del giocatore da uccidere: "))
+                        index -= 1
+                    except:
+                        print("Input non valido, verrà scelto in automatico il primo")
+                        index = 0
+                    victim = targets[index]
+                    victim.targeted = True
+                else:
+                    print("Sei morto. Le tue vittime verranno a prenderti")
                 os.system('cls' if os.name == 'nt' else 'clear')
 
+            # GUARDIANO
             if player.role == 'Guardiano':
                 if player.alive is True:
                     print("Guardiano, scegli chi vuoi proteggere")
-                    targets = [p for p in self.get_alive_players()]
+                    targets = [p for p in self.get_alive_players() if p.just_protected is False]
                     for i, p in enumerate(targets):
-                        print(f"{i}. {p.name}")
+                        print(f"{i+1}. {p.name}")
                     try:
                         index = int(input("Inserisci il numero del giocatore da proteggere: "))
+                        index -= 1
                     except:
-                        print("Input non valido, verrà scelto in automatico lo 0")
+                        print("Input non valido, verrà scelto in automatico il primo")
                         index = 0
                     safe_player = targets[index]
                     safe_player.protected = True
@@ -84,67 +103,68 @@ class Game:
                     time.sleep(3)
                 os.system('cls' if os.name == 'nt' else 'clear')
 
+            # VEGGENTE
             if player.role == 'Veggente':
                 if player.alive is True:
                     print("Veggente, scegli un giocatore da scoprire:")
                     others = [p for p in self.get_alive_players() if p.role != 'Veggente']
                     for i, p in enumerate(others):
-                        print(f"{i}. {p.name}")
+                        print(f"{i+1}. {p.name}")
                     choice = int(input("Numero del giocatore da scrutare: "))
+                    choice -= 1
                     # print(f"{others[choice].name} è un {others[choice].role}")
-                    if p.role == "Lupo Mannaro":
+                    if others[choice].role == "Lupo Mannaro":
                         print(f"{others[choice].name} è un Lupo Mannaro")
                     else:
                         print(f"{others[choice].name} NON è un Lupo Mannaro")
                 else:
-                    print("Sei morto, sai già tutto")
+                    print("Sei morto")
                 time.sleep(3)
                 os.system('cls' if os.name == 'nt' else 'clear')
+            
+            # MEDIUM
+            if player.role == 'Medium':
+                if player.alive is True:
+                    if round_count > 1 :
+                        others = [p for p in self.get_dead_players() if p.role != 'Medium']
+                        print("Medium, scegli un giocatore da scoprire:")
+                        for i, p in enumerate(others):
+                            print(f"{i+1}. {p.name}")
+                        choice = int(input("Numero del giocatore da scrutare: "))
+                        choice -= 1
+                        # print(f"{others[choice].name} è un {others[choice].role}")
+                        if others[choice].role == "Lupo Mannaro":
+                            print(f"{others[choice].name} è un Lupo Mannaro")
+                        else:
+                            print(f"{others[choice].name} NON è un Lupo Mannaro")
+                    else:
+                        print("Vai al bar e aspetta la prossima notte")
+                else:
+                    print("Sei morto")
+                time.sleep(3)
+                os.system('cls' if os.name == 'nt' else 'clear')
+            
+            # # CUPIDO
+            # if player.role == 'Cupido':
+            #     if player.alive is True:
+            #         if round_count == 1 :
+            #             others = [p for p in self.get_alive_players()]
+            #             print("Cupido, scegli due giocatore da travolgere con la forza dell'amore:")
+            #             for i, p in enumerate(others):
+            #                 print(f"{i+1}. {p.name}")
+            #             lover1 = int(input("Numero del giocatore da scrutare: "))
+            #             lover1 -= 1
+            #             lover2 = int(input("Numero del giocatore da scrutare: "))
+            #             lover2 -= 1
+                        
+            #         else:
+            #             print("Hai già diffuso l'amore")
+            #     else:
+            #         print("Sei morto")
+            #     time.sleep(3)
+            #     os.system('cls' if os.name == 'nt' else 'clear')
 
-
-            # time.sleep(3)
-            # os.system('cls' if os.name == 'nt' else 'clear')
-
-        # # Lupi scelgono la vittima
-        # wolves = [p for p in self.get_alive_players() if p.role == 'Lupo Mannaro']
-        # if wolves:
-        #     print("Lupi, scegliete la vittima. (Parlate tra di voi, poi uno solo inserisca)")
-        #     targets = [p for p in self.get_alive_players() if p.role != 'Werewolf']
-        #     for i, p in enumerate(targets):
-        #         print(f"{i}. {p.name}")
-        #     index = int(input("Inserisci il numero del giocatore da uccidere: "))
-        #     victim = targets[index]
-        #     victim.targeted = True
-        #     os.system('cls' if os.name == 'nt' else 'clear')
-
-        # # Guardiano
-        # guard = [p for p in self.get_alive_players() if p.role == 'Guardiano']
-        # if guard:
-        #     print("Guardiano, scegli chi vuoi proteggere")
-        #     targets = [p for p in self.get_alive_players() if p.role != 'Guardiano']
-        #     for i, p in enumerate(targets):
-        #         print(f"{i}. {p.name}")
-        #     index = int(input("Inserisci il numero del giocatore da proteggere: "))
-        #     safe_player = targets[index]
-        #     safe_player.protected = True
-        #     os.system('cls' if os.name == 'nt' else 'clear')
-
-        # # Veggente vede un ruolo
-        # seers = [p for p in self.get_alive_players() if p.role == 'Veggente']
-        # seer = seers[0]
-        # print(f"\n{seer.name} (Veggente), scegli un giocatore da scoprire:")
-        # others = [p for p in self.get_alive_players() if p != seer]
-        # for i, p in enumerate(others):
-        #     print(f"{i}. {p.name}")
-        # choice = int(input("Numero del giocatore da scrutare: "))
-        # if seer-alive is True:
-        #     print(f"{others[choice].name} è un {others[choice].role}")
-        # else:
-        #     print("Sei morto, sai già tutto")
-        # time.sleep(3)
-        # os.system('cls' if os.name == 'nt' else 'clear')
-
-    def day_phase(self):
+    def day_phase(self, round_count):
         print("\n--- GIORNO ---")
 
         for player in self.get_alive_players():
@@ -152,31 +172,8 @@ class Game:
                 if player.protected is True:
                     print("Nessuno è stato ucciso nella notte")
                 else:
-                    print(f"Purtroppo \n{player.name} non ha superato la notte")
+                    print(f"Purtroppo {player.name} non ha superato la notte")
                     player.alive = False
-               
-                player.targeted = False
-                player.protected = False
-
-        # potential_victim = [p for p in self.get_alive_players() if p.targeted is True]
-        # potential_victim = potential_victim[0]
-        # safe_player = [p for p in self.get_alive_players() if p.protected is True]
-        
-        # safe_player = safe_player[0]
-
-        # if potential_victim != safe_player:
-        #     print(f"Purtroppo \n{potential_victim.name} non ha superato la notte")
-        #     potential_victim.alive = False
-        # else:
-        #     print("Nessuno è stato ucciso nella notte")
-        
-        # # for player in potential_victim:
-        # #     player.targeted = False
-        # # for player in safe_player:
-        # #     player.protected = False
-
-        # potential_victim.targeted = False
-        # safe_player.protected = False
 
         input("Discussione tra i giocatori... premi INVIO per proseguire")
         # time.sleep(5)
@@ -201,12 +198,19 @@ class Game:
                 p.alive = False
                 print(f"{lynched_name} è stato linciato!")
                 break
+        
+        for player in self.get_alive_players():
+            if player.targeted is True:
+                player.targeted = False
+            if player.protected is True:
+                player.protected = False
+                player.just_protected = True
 
     def check_game_over(self):
-        wolves = [p for p in self.get_alive_players() if p.role == 'Lupo Mannaro']
+        wolves = [p for p in self.get_alive_players() if p.role == 'Lupo Mannaro' or p.role =='Indemoniato']
         villagers = [p for p in self.get_alive_players() if p.role != 'Lupo Mannaro']
         if not wolves:
-            print("\nI VILLAGGIATORI VINCONO!")
+            print("\nI VILLICI VINCONO!")
             return True
         elif len(wolves) >= len(villagers):
             print("\nI LUPI MANNARI VINCONO!")
@@ -217,21 +221,23 @@ class Game:
         round_count = 1
         while not self.check_game_over():
             print(f"\n======= ROUND {round_count} =======")
-            self.night_phase()
+            self.night_phase(round_count)
             if self.check_game_over():
                 break
-            self.day_phase()
+            self.day_phase(round_count)
+            if self.check_game_over():
+                break
             round_count += 1
 
 
 # Avvio del gioco
 print("Benvenuti a Lupus!")
-player_names = ["Albu","Dani","Gabri","Marco","Chiara","Fede"]
-"""
-for i in range(6):
-    name = input(f"Inserisci il nome del giocatore {i + 1}: ")
-    player_names.append(name)
-"""
+
+# player_names = ["Albu","Gabri","Marco","Chiara", "Dani", "Fede"]
+player_names = ["A", "B", "C"]
+# for i in range(6):
+#     name = input(f"Inserisci il nome del giocatore {i + 1}: ")
+#     player_names.append(name)
 
 game = Game(player_names)
 game.play()
