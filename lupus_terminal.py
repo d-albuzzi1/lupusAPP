@@ -21,10 +21,10 @@ class Game:
 
     def __init__(self, player_names):
         self.players = [Player(name) for name in player_names]
-        # RUOLI IMPLEMENTATI: Lupo Mannaro, Guardiano, Veggente, Medium, Indemoniato, Ragazzina
-        # self.roles = ['Lupo Mannaro', 'Lupo Mannaro', 'Veggente', 'Guardiano', 'Medium', 'Villico']
-        # self.roles = ['Lupo Mannaro', 'Lupo Mannaro', 'Veggente', 'Guardiano', 'Villico', 'Villico']
-        self.roles = ['Lupo Mannaro', 'Medium', 'Villico']
+        # RUOLI IMPLEMENTATI: Lupo, Guardiano, Veggente, Medium, Indemoniato, Curioso
+        # self.roles = ['Lupo', 'Lupo', 'Veggente', 'Guardiano', 'Medium', 'Contadino']
+        # self.roles = ['Lupo', 'Lupo', 'Veggente', 'Guardiano', 'Contadino', 'Contadino']
+        self.roles = ['Lupo', 'Medium', 'Contadino']
         print(f"Ruoli in gioco: {self.roles}")
         self.assign_roles()
 
@@ -51,8 +51,8 @@ class Game:
             input(f"{player.name}, premi INVIO per proseguire. (Assicurati che nessuno guardi!)")
             print(f"Il tuo ruolo è: {player.role}")
 
-            # VILLICI, INDEMONIATO, RAGAZZINA
-            inactive_roles = ['Villico', 'Indemoniato', 'Ragazzina']
+            # CONTADINI, INDEMONIATO, CURIOSO
+            inactive_roles = ['Contadino', 'Indemoniato', 'Curioso']
             if player.role in inactive_roles:
                 if player.alive is True:
                     try:
@@ -65,10 +65,10 @@ class Game:
                 os.system('cls' if os.name == 'nt' else 'clear')
 
             # LUPI MANNARI
-            if player.role == 'Lupo Mannaro':
+            if player.role == 'Lupo':
                 if player.alive is True:
                     print("Lupi, scegliete la vittima. (Parlate tra di voi, poi uno solo inserisca)")
-                    targets = [p for p in self.get_alive_players() if p.role != 'Lupo Mannaro']
+                    targets = [p for p in self.get_alive_players() if p.role != 'Lupo']
                     for i, p in enumerate(targets):
                         print(f"{i+1}. {p.name}")
                     try:
@@ -113,10 +113,10 @@ class Game:
                     choice = int(input("Numero del giocatore da scrutare: "))
                     choice -= 1
                     # print(f"{others[choice].name} è un {others[choice].role}")
-                    if others[choice].role == "Lupo Mannaro":
-                        print(f"{others[choice].name} è un Lupo Mannaro")
+                    if others[choice].role == "Lupo":
+                        print(f"{others[choice].name} è un Lupo")
                     else:
-                        print(f"{others[choice].name} NON è un Lupo Mannaro")
+                        print(f"{others[choice].name} NON è un Lupo")
                 else:
                     print("Sei morto")
                 time.sleep(3)
@@ -133,10 +133,10 @@ class Game:
                         choice = int(input("Numero del giocatore da scrutare: "))
                         choice -= 1
                         # print(f"{others[choice].name} è un {others[choice].role}")
-                        if others[choice].role == "Lupo Mannaro":
-                            print(f"{others[choice].name} è un Lupo Mannaro")
+                        if others[choice].role == "Lupo":
+                            print(f"{others[choice].name} è un Lupo")
                         else:
-                            print(f"{others[choice].name} NON è un Lupo Mannaro")
+                            print(f"{others[choice].name} NON è un Lupo")
                     else:
                         print("Vai al bar e aspetta la prossima notte")
                 else:
@@ -207,10 +207,10 @@ class Game:
                 player.just_protected = True
 
     def check_game_over(self):
-        wolves = [p for p in self.get_alive_players() if p.role == 'Lupo Mannaro' or p.role =='Indemoniato']
-        villagers = [p for p in self.get_alive_players() if p.role != 'Lupo Mannaro']
+        wolves = [p for p in self.get_alive_players() if p.role == 'Lupo' or p.role =='Indemoniato']
+        villagers = [p for p in self.get_alive_players() if p.role != 'Lupo']
         if not wolves:
-            print("\nI VILLICI VINCONO!")
+            print("\nI CONTADINI VINCONO!")
             return True
         elif len(wolves) >= len(villagers):
             print("\nI LUPI MANNARI VINCONO!")
