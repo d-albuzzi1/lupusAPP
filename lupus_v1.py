@@ -22,25 +22,25 @@ pygame.display.set_caption("Lupus")
 
 
 # Scaling delle dimensioni
-scale = 1
-n1 = 30 * scale
-n2 = 40 * scale
-n3 = 50 * scale
-n4 = 35 * scale
-n5 = 90 * scale
-n6 = 100 * scale
-n7 = 120 * scale
-n8 = 150 * scale
-n9 = 110 * scale
-n10 = 140 * scale
-n11 = 200 * scale
-n12 = 250 * scale
-n13 = 300 * scale
-n14 = 350 * scale
-n15 = 180 * scale
-n16 = 480 * scale
-n17 = 203 * scale
-n18 = 42 * scale
+scale = 1 # DA COMMENTARE NELLA VERSIONE DA TELEFONO !!!
+n1 = int(30 * scale)
+n2 = int(40 * scale)
+n3 = int(50 * scale)
+n4 = int(35 * scale)
+n5 = int(90 * scale)
+n6 = int(100 * scale)
+n7 = int(120 * scale)
+n8 = int(150 * scale)
+n9 = int(110 * scale)
+n10 = int(140 * scale)
+n11 = int(200 * scale)
+n12 = int(250 * scale)
+n13 = int(300 * scale)
+n14 = int(350 * scale)
+n15 = int(180 * scale)
+n16 = int(480 * scale)
+n17 = int(203 * scale)
+n18 = int(42 * scale)
 
 # Colori
 WHITE = (255, 255, 255)
@@ -50,7 +50,7 @@ BLUE = (50, 150, 255)
 DARK_BLUE = (30, 100, 200)
 
 # Font
-FONT = pygame.font.SysFont("DejaVu Sans", 24)
+FONT = pygame.font.SysFont("DejaVu Sans", int(24*scale))
 
 # Classe Pulsante
 class Button:
