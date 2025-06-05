@@ -10,8 +10,40 @@ pygame.init()
 
 # Dimensioni dello schermo tipo telefono
 WIDTH, HEIGHT = 360, 640
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+info = pygame.display.Info()
+REAL_WIDTH, REAL_HEIGHT = info.current_w, info.current_h
+
+scale_x = REAL_WIDTH / WIDTH
+scale_y = REAL_HEIGHT / HEIGHT
+scale = min(scale_x, scale_y)  # mantiene proporzioni
+
+SCREEN = pygame.display.set_mode((REAL_WIDTH, REAL_HEIGHT))
 pygame.display.set_caption("Lupus")
+
+
+# Scaling delle dimensioni
+# scale = 1 # DA COMMENTARE NELLA VERSIONE DA TELEFONO !!!
+n1 = int(30 * scale)
+n2 = int(40 * scale)
+n3 = int(50 * scale)
+n4 = int(35 * scale)
+n5 = int(90 * scale)
+n6 = int(100 * scale)
+n7 = int(120 * scale)
+n8 = int(150 * scale)
+n9 = int(110 * scale)
+n10 = int(140 * scale)
+n11 = int(200 * scale)
+n12 = int(250 * scale)
+n13 = int(300 * scale)
+n14 = int(350 * scale)
+n15 = int(180 * scale)
+n16 = int(480 * scale)
+n17 = int(203 * scale)
+n18 = int(42 * scale)
+n19 = int(135 * scale)
+n20 = int(170 * scale)
+
 
 # Colori
 WHITE = (255, 255, 255)
@@ -21,7 +53,7 @@ BLUE = (50, 150, 255)
 DARK_BLUE = (30, 100, 200)
 
 # Font
-FONT = pygame.font.SysFont("DejaVu Sans", 24)
+FONT = pygame.font.SysFont("DejaVu Sans", int(24*scale))
 
 # Classe Pulsante
 class Button:
@@ -49,19 +81,19 @@ class Button:
 # Classe per selettore numerico con frecce
 class NumberSelector:
     def __init__(self, x, y, value_ref, name):
-        self.left_btn = Button(x, y, 30, 40, "◀", WHITE, DARK_BLUE, action=self.decrease)
-        self.right_btn = Button(x + 55, y, 30, 40, "▶", WHITE, DARK_BLUE, action=self.increase)
+        self.left_btn = Button(x, y, n1, n2, "◀", WHITE, DARK_BLUE, action=self.decrease)
+        self.right_btn = Button(x + 55*scale, y, n1, n2, "▶", WHITE, DARK_BLUE, action=self.increase)
         self.value_ref = value_ref
         self.name = name
-        self.x = x + 35
-        self.y = y + 3
+        self.x = x + n4
+        self.y = y + 3*scale
 
     def draw(self, surface):
         self.left_btn.draw(surface)
         self.right_btn.draw(surface)
 
         val = FONT.render(str(self.value_ref[0]), True, BLACK)
-        val_rect = val.get_rect(center=(self.x + 5, self.y + 20))
+        val_rect = val.get_rect(center=(self.x + 5*scale, self.y + 20*scale))
         surface.blit(val, val_rect)
 
     def handle_event(self, event):
@@ -114,7 +146,7 @@ class GroupOfCheckbox:
         self.checkbox_array = []
 
         for i in range(number):
-            btn = Button(x, y + i * 40, 35, 35, "◯ ", WHITE, WHITE, action=partial(self.box_checked, i))
+            btn = Button(x, y + i * n2, n4, n4, "◯ ", WHITE, WHITE, action=partial(self.box_checked, i))
             self.checkbox_array.append(btn)
 
     def draw(self, surface):
@@ -217,46 +249,46 @@ class ScreenActions:
 screen_actions = ScreenActions()
 
 # Pulsanti principali
-role_sel_btn = Button(30, 200, 300, 50, "Modifica ruoli disponibili", GRAY, DARK_BLUE, 
+role_sel_btn = Button(n1, n11, n13, n3, "Modifica ruoli disponibili", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, role_selection_screen))
-player_sel_btn = Button(70, 280, 220, 50, "Imposta giocatori", GRAY, DARK_BLUE, 
+player_sel_btn = Button(70*scale, 280*scale, 220*scale, n3, "Imposta giocatori", GRAY, DARK_BLUE, 
                     action=None)
 
-btn_contadini = Button(40, 100, 120, 50, "Contadini", WHITE, WHITE)
-btn_lupi = Button(40, 150, 120, 50, "Lupi", WHITE, WHITE)
-btn_guardiano = Button(40, 200, 120, 50, "Guardiano", WHITE, WHITE)
-btn_veggente = Button(40, 250, 120, 50, "Veggente", WHITE, WHITE)
-btn_medium = Button(40, 300, 120, 50, "Medium", WHITE, WHITE)
-btn_indemoniato = Button(40, 350, 120, 50, "Indemoniato", WHITE, WHITE)
-btn_curioso = Button(40, 400, 120, 50, "Curioso", WHITE, WHITE)
+btn_contadini = Button(n2, n6, n7, n3, "Contadini", WHITE, WHITE)
+btn_lupi = Button(n2, n8, n7, n3, "Lupi", WHITE, WHITE)
+btn_guardiano = Button(n2, n11, n7, n3, "Guardiano", WHITE, WHITE)
+btn_veggente = Button(n2, n12, n7, n3, "Veggente", WHITE, WHITE)
+btn_medium = Button(n2, n13, n7, n3, "Medium", WHITE, WHITE)
+btn_indemoniato = Button(n2, n14, n7, n3, "Indemoniato", WHITE, WHITE)
+btn_curioso = Button(n2, 400*scale, n7, n3, "Curioso", WHITE, WHITE)
 
-next_screen_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
+next_screen_btn = Button(n9, n16, n10, n3, "Avanti", GRAY, DARK_BLUE, 
                      action=partial(screen_actions.next_screen))
 
-next_player_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
+next_player_btn = Button(n9, n16, n10, n3, "Avanti", GRAY, DARK_BLUE, 
                      action=partial(screen_actions.next_player_screen))
 
-back_btn = Button(110, 480, 140, 50, "OK", GRAY, DARK_BLUE, 
+back_btn = Button(n9, n16, n10, n3, "OK", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, start_screen))
 
-start_btn = Button(90, 480, 180, 50, "Nuova partita", GRAY, DARK_BLUE, 
+start_btn = Button(n5, n16, n15, n3, "Nuova partita", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, start_screen))
 
-divination_btn = Button(100, 480, 160, 50, "Divinazione", GRAY, DARK_BLUE, 
+divination_btn = Button(n6, n16, 160*scale, n3, "Divinazione", GRAY, DARK_BLUE, 
                     # action=partial(screen_actions.divination_screen))
                     action=partial(screen_actions.change_screen, divination_screen))
 
-night_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
+night_btn = Button(n9, n16, n10, n3, "Avanti", GRAY, DARK_BLUE, 
                     # action=partial(screen_actions.divination_screen))
                     action=partial(screen_actions.change_screen, night_phase))
 
-night_start_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
+night_start_btn = Button(n9, n16, n10, n3, "Avanti", GRAY, DARK_BLUE, 
                     # action=partial(screen_actions.divination_screen))
                     action=partial(screen_actions.change_screen, night_phase_start))
 
 checkbox = []
 for i in range(len(player_names)):
-    checkbox.append(GroupOfCheckbox(40, 200, number=i+1)) # il temine i-esimo avrà i+1 caselle
+    checkbox.append(GroupOfCheckbox(n2, n11, number=i+1)) # il temine i-esimo avrà i+1 caselle
 
 # Selettori dei ruoli
 
@@ -276,13 +308,13 @@ value_medium_ref = [value_medium]
 value_indemoniato_ref = [value_indemoniato]
 value_curioso_ref = [value_curioso]
 
-selector_contadini = NumberSelector(180, 100, value_contadini_ref, name='Contadini')
-selector_lupi = NumberSelector(180, 150, value_lupi_ref, name='Lupi')
-selector_guardiano = NumberSelector(180, 200, value_guardiano_ref, name='Guardiano')
-selector_veggente = NumberSelector(180, 250, value_veggente_ref, name='Veggente')
-selector_medium = NumberSelector(180, 300, value_medium_ref, name='Medium')
-selector_indemoniato = NumberSelector(180, 350, value_indemoniato_ref, name='Indemoniato')
-selector_curioso = NumberSelector(180, 400, value_curioso_ref, name='Curioso')
+selector_contadini = NumberSelector(n15, n6, value_contadini_ref, name='Contadini')
+selector_lupi = NumberSelector(n15, n8, value_lupi_ref, name='Lupi')
+selector_guardiano = NumberSelector(n15, n11, value_guardiano_ref, name='Guardiano')
+selector_veggente = NumberSelector(n15, n12, value_veggente_ref, name='Veggente')
+selector_medium = NumberSelector(n15, n13, value_medium_ref, name='Medium')
+selector_indemoniato = NumberSelector(n15, n14, value_indemoniato_ref, name='Indemoniato')
+selector_curioso = NumberSelector(n15, 400*scale, value_curioso_ref, name='Curioso')
 
 inactive_roles = ['Contadino', 'Indemoniato', 'Curioso']
 targeted_indexes = []
@@ -342,7 +374,7 @@ class Game:
 
         SCREEN.fill(WHITE)
         title = FONT.render("Benvenuti a Lupus!", True, BLACK)
-        SCREEN.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+        SCREEN.blit(title, (REAL_WIDTH // 2 - title.get_width() // 2, n6))
 
         role_sel_btn.draw(SCREEN)
         player_sel_btn.draw(SCREEN)
@@ -351,7 +383,7 @@ class Game:
     def draw_role_selection_screen(self):
         SCREEN.fill(WHITE)
         title = FONT.render("Selezione ruoli disponibili", True, BLACK)
-        SCREEN.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
+        SCREEN.blit(title, (REAL_WIDTH // 2 - title.get_width() // 2, n3))
 
         btn_contadini.draw(SCREEN)
         selector_contadini.draw(SCREEN)
@@ -380,17 +412,17 @@ class Game:
             title1 = FONT.render(f"{player.name},", True, BLACK)
             title2 = FONT.render("prosegui per", True, BLACK)
             title3 = FONT.render("vedere il tuo ruolo", True, BLACK)
-            SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-            SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+            SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
+            SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n19))
+            SCREEN.blit(title3, (REAL_WIDTH // 2 - title3.get_width() // 2, n20))
             next_player_btn.draw(SCREEN)
         else:
             title1 = FONT.render(f"{player.name},", True, BLACK)
             title2 = FONT.render("il tuo ruolo è:", True, BLACK)
             title3 = FONT.render(f"{player.role}", True, BLACK)
-            SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-            SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+            SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
+            SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n19))
+            SCREEN.blit(title3, (REAL_WIDTH // 2 - title3.get_width() // 2, n20))
             next_player_btn.draw(SCREEN)
 
     def draw_divination_screen(self):
@@ -403,13 +435,13 @@ class Game:
                 break
 
         title1 = FONT.render(f"{divinated_player.name}", True, BLACK)
-        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
         if divinated_player.role == 'Lupo':
             title2 = FONT.render("è un Lupo!", True, BLACK)
         else:
             title2 = FONT.render("NON è un Lupo!", True, BLACK)
             
-        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+        SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
 
         night_btn.draw(SCREEN)
 
@@ -422,9 +454,9 @@ class Game:
         title1 = FONT.render("È notte. Tutti chiudono", True, BLACK)
         title2 = FONT.render("gli occhi 30 secondi,", True, BLACK)
         title3 = FONT.render("mentre i lupi discutono", True, BLACK)
-        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-        SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
+        SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n19))
+        SCREEN.blit(title3, (REAL_WIDTH // 2 - title3.get_width() // 2, n20))
         next_screen_btn.draw(SCREEN)
 
     def draw_night_phase(self):
@@ -440,15 +472,15 @@ class Game:
         if current_phase == 0:
 
             title1 = FONT.render(f"{player.name},", True, BLACK)
-            SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+            SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
             title2 = FONT.render("clicca per proseguire", True, BLACK)
-            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+            SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
             next_player_btn.draw(SCREEN)
 
         else:
             
             title1 = FONT.render(f"{player.role}", True, BLACK)
-            SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+            SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
 
             # CONTADINI, INDEMONIATO, CURIOSO
             if player.role in inactive_roles:
@@ -460,14 +492,14 @@ class Game:
             if player.role == 'Lupo':
                 if player.alive is True:
                     title1 = FONT.render("Scegli una vittima", True, BLACK)
-                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+                    SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n8))
                     
                     targets = [p for p in self.get_alive_players() if p.role != 'Lupo']
                     len_box = len(targets)-1
                     checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(targets):
                         name = FONT.render(f"{p.name}", True, BLACK)
-                        SCREEN.blit(name, (90, 203 + i*42))
+                        SCREEN.blit(name, (n5, n17 + i*n18))
                     
                     targeted_indexes = checkbox[len_box].get_values()
 
@@ -482,14 +514,14 @@ class Game:
             if player.role == 'Guardiano':
                 if player.alive is True:
                     title1 = FONT.render("Scegli chi proteggere", True, BLACK)
-                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+                    SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n8))
 
                     targets = [p for p in self.get_alive_players() if p.just_protected is False]
                     len_box = len(targets)-1
                     checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(targets):
                         name = FONT.render(f"{p.name}", True, BLACK)
-                        SCREEN.blit(name, (90, 203 + i*42))
+                        SCREEN.blit(name, (n5, n17 + i*n18))
 
                     protected_indexes = checkbox[len_box].get_values()
 
@@ -504,14 +536,14 @@ class Game:
             if player.role == 'Veggente':
                 if player.alive is True:
                     title1 = FONT.render("Scegli chi divinare", True, BLACK)
-                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+                    SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n8))
 
                     others = [p for p in self.get_alive_players() if p.role != 'Veggente']
                     len_box = len(others)-1
                     checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(others):
                         name = FONT.render(f"{p.name}", True, BLACK)
-                        SCREEN.blit(name, (90, 203 + i*42))
+                        SCREEN.blit(name, (n5, n17 + i*n18))
                     
                     divinated_indexes = checkbox[len_box].get_values()
 
@@ -527,14 +559,14 @@ class Game:
                 if player.alive is True:
                     if self.round_count > 1 :
                         title1 = FONT.render("Scegli chi divinare", True, BLACK)
-                        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+                        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n8))
 
                         others = [p for p in self.get_dead_players() if p.role != 'Medium']
                         len_box = len(others)-1
                         checkbox[len_box].draw(SCREEN)
                         for i, p in enumerate(others):
                             name = FONT.render(f"{p.name}", True, BLACK)
-                            SCREEN.blit(name, (90, 203 + i*42))
+                            SCREEN.blit(name, (n5, n17 + i*n18))
                         
                         medium_indexes = checkbox[len_box].get_values()
 
@@ -547,7 +579,7 @@ class Game:
                         divination_btn.draw(SCREEN)
                     else:
                         title2 = FONT.render("Aspetta la prossima notte", True, BLACK)
-                        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+                        SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
                         next_player_btn.draw(SCREEN)   
 
     def draw_day_phase(self):
@@ -559,17 +591,17 @@ class Game:
             if player.targeted is True:
                 if player.protected is True:
                     title2 = FONT.render("Nessuno è stato ucciso", True, BLACK)
-                    SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+                    SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
 
                 else:
                     title2 = FONT.render(f"{player.name} sei morto", True, BLACK)
-                    SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+                    SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
                     player.alive = False
 
         title3 = FONT.render("Prosegui per andare ai voti", True, BLACK)
 
-        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-        SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 200))
+        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
+        SCREEN.blit(title3, (REAL_WIDTH // 2 - title3.get_width() // 2, n11))
 
         alive_players = len(self.get_alive_players())
         next_screen_btn.draw(SCREEN)
@@ -596,17 +628,17 @@ class Game:
             print(elegible, self.ballot)
             title1 = FONT.render("Votazioni di ballottaggio:", True, BLACK)
             
-        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
 
         title2 = FONT.render(f"{voter.name}, scegli chi votare:", True, BLACK)
-        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+        SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
         
         options = [p for p in elegible if p != voter]
         len_box = len(options)-1
         checkbox[len_box].draw(SCREEN)
         for i, p in enumerate(options):
             name = FONT.render(f"{p.name}", True, BLACK)
-            SCREEN.blit(name, (90, 203 + i*42))
+            SCREEN.blit(name, (n5, 203 + i*n18))
         
         voted_indexes = checkbox[len_box].get_values()
 
@@ -666,7 +698,7 @@ class Game:
             self.vote_outcome()
 
         title1 = FONT.render(f"{self.lynched} è stato linciato!", True, BLACK)
-        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
         
         for player in self.players:
             player.vote = 0
@@ -707,7 +739,7 @@ class Game:
         else:
             title1 = FONT.render("Error", True, BLACK)
     
-        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
         start_btn.draw(SCREEN)
 
 game = Game(player_names)
@@ -742,7 +774,7 @@ def main_loop():
         else:
             # print(current_screen)
             end_text = FONT.render("Fine!", True, BLACK)
-            SCREEN.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 2))
+            SCREEN.blit(end_text, (REAL_WIDTH // 2 - end_text.get_width() // 2, REAL_HEIGHT // 2))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
