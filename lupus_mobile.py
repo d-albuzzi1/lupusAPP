@@ -81,8 +81,8 @@ class Button:
 # Classe per selettore numerico con frecce
 class NumberSelector:
     def __init__(self, x, y, value_ref, name):
-        self.left_btn = Button(x, y, n1, n2, "◀", WHITE, DARK_BLUE, action=self.decrease)
-        self.right_btn = Button(x + 55*scale, y, n1, n2, "▶", WHITE, DARK_BLUE, action=self.increase)
+        self.left_btn = Button(x, y, n1, n2, "←", WHITE, DARK_BLUE, action=self.decrease)
+        self.right_btn = Button(x + 55*scale, y, n1, n2, "→", WHITE, DARK_BLUE, action=self.increase)
         self.value_ref = value_ref
         self.name = name
         self.x = x + n4
@@ -146,13 +146,13 @@ class GroupOfCheckbox:
         self.checkbox_array = []
 
         for i in range(number):
-            btn = Button(x, y + i * n2, n4, n4, "◯ ", WHITE, WHITE, action=partial(self.box_checked, i))
+            btn = Button(x, y + i * n2, n4, n4, "○", WHITE, WHITE, action=partial(self.box_checked, i))
             self.checkbox_array.append(btn)
 
     def draw(self, surface):
         for i in range(self.number):
             label_text = self.checkbox_array[i].text[2:]  # Rimuovi ◯ o ⬤
-            symbol = "⬤" if self.value_ref[i] == 1 else "◯"
+            symbol = "●" if self.value_ref[i] == 1 else "◯"
             self.checkbox_array[i].text = f"{symbol} {label_text}"
             self.checkbox_array[i].draw(surface)
 
