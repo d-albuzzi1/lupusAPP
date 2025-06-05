@@ -6,6 +6,8 @@ import random
 import os
 import time
 
+# Avvio del gioco
+print("Benvenuti a Lupus!")
 pygame.init()
 
 # Dimensioni dello schermo tipo telefono
@@ -80,30 +82,6 @@ class NumberSelector:
         if self.value_ref[0] > 0:
             self.value_ref[0] -= 1
 
-# class Checkbox:
-#     def __init__(self, x, y):
-#         self.value_ref = [0]  # ad es. [0]
-#         self.btn = Button(x, y, 40, 40, "◯", WHITE, DARK_BLUE, action=self.box_checked)
-#         # self.x = x + 40  # posizione del testo accanto
-#         # self.y = y + 10
-
-#     def draw(self, surface):
-#         # Aggiorna simbolo in base allo stato attuale
-#         self.btn.text = "⬤" if self.value_ref[0] == 1 else "◯"
-#         self.btn.draw(surface)
-
-#         # # Disegna etichetta accanto alla checkbox
-#         # label_surf = FONT.render(self.label, True, BLACK)
-#         # surface.blit(label_surf, (self.x, self.y))
-
-#     def handle_event(self, event):
-#         self.btn.handle_event(event)
-    
-#     def box_checked(self, surface):
-#         self.value_ref[0] = 1 - self.value_ref[0]  # toggle tra 0 e 1
-#         self.draw(surface)
-
-
 # Classe Player
 class Player:
     def __init__(self, name):
@@ -113,18 +91,23 @@ class Player:
         self.targeted = False
         self.protected = False
         self.just_protected = False
-        self.vote = None
+        self.divinated = False
+        self.medium = False
+        self.vote = 0
+        self.vote_done = False
 
     def __str__(self):
         return f"{self.name} ({'Alive' if self.alive else 'Dead'}) - {self.role}"
 
-# Avvio del gioco
-print("Benvenuti a Lupus!")
+# # player_names = ["Albu","Gabri","Marco","Chiara", "Dani", "Fede"]
+# player_names = ["A", "B", "C", "D"]
+# # for i in range(6):
+# #     name = input(f"Inserisci il nome del giocatore {i + 1}: ")
+# #     player_names.append(name)
 
-# player_names = ["Albu","Gabri","Marco","Chiara", "Dani", "Fede"]
-player_names = ["A", "B", "C", "D", "E"]
-
-
+player_names = ["A", "B", "C", "D", "E", "F"]
+# players_data = [Player(name) for name in player_names]
+alive_players = len(player_names)
 
 class GroupOfCheckbox:
     def __init__(self, x, y, number):
@@ -133,8 +116,7 @@ class GroupOfCheckbox:
         self.checkbox_array = []
 
         for i in range(number):
-            #label = labels[i] if labels else f"Opzione {i+1}"
-            btn = Button(x, y + i * 60, 200, 40, "◯ ", WHITE, DARK_BLUE, action=partial(self.box_checked, i))
+            btn = Button(x, y + i * 40, 35, 35, "◯ ", WHITE, WHITE, action=partial(self.box_checked, i))
             self.checkbox_array.append(btn)
 
     def draw(self, surface):
@@ -154,15 +136,26 @@ class GroupOfCheckbox:
             self.value_ref[i] = 0
         # Seleziona solo quella cliccata
         self.value_ref[index] = 1
-
+    
+    def get_values(self):
+        self.value_array = []
+        for i in range(self.number):
+            self.value_array.append(self.value_ref[i])
+        return self.value_array
 
 # Controllo schermate
-current_screen = 1
-start_screen = 1
-role_selection_screen = 0
-role_reveal_screen = 2
-night_phase_start = 3
-night_phase = 4
+current_screen = 0
+start_screen = 0
+role_reveal_screen = 1
+night_phase_start = 2
+night_phase = 3
+day_phase = 4
+day_phase_vote = 5
+vote_outcome = 6
+
+role_selection_screen = -1
+divination_screen = -2
+game_over_screen = -5
 
 current_player = 0
 current_phase = 0
@@ -179,8 +172,6 @@ class ScreenActions:
 
     def sync_role_values(self):
         global value_contadini, value_lupi, value_guardiano, value_veggente, value_medium, value_indemoniato, value_curioso
-        # global value_contadini_ref, value_lupi_ref, value_guardiano_ref, value_veggente_ref, value_medium_ref, value_indemoniato_ref, value_curioso_ref
-        # print('contadini:', value_contadini, value_contadini_ref[0])
         value_contadini = value_contadini_ref[0]
         value_lupi = value_lupi_ref[0]
         value_guardiano = value_guardiano_ref[0]
@@ -189,31 +180,41 @@ class ScreenActions:
         value_indemoniato = value_indemoniato_ref[0]
         value_curioso = value_curioso_ref[0]
 
-        # print('contadini:', value_contadini, value_contadini_ref[0])
-
     def change_screen(self, screen_number):
         global current_screen
         if current_screen == role_selection_screen:
             self.sync_role_values()
+        if current_screen == divination_screen:
+            self.next_player_screen()
+        
         current_screen = screen_number
 
     def next_screen(self):
-        global current_screen #, value_contadini
-        # print('contadini:', value_contadini, value_contadini_ref[0])
+        global current_screen, current_player, current_phase
+        current_player = 0
+        current_phase = 0
         current_screen += 1
     
     def next_player_screen(self):
-        global current_screen, current_phase, current_player
-        # print(current_player, len(player_names)) 
+        global current_screen, current_phase, current_player, alive_players
+        # print(current_screen)
+        # print(current_player)
         if current_phase == 1:
-            if current_player <  len(player_names)-1:
+            #if current_player <  len(player_names)-1:
+            if current_player <  alive_players-1:
                 current_player += 1
             else:
-                print(current_player)
+                # print(current_player)
                 current_screen += 1
                 current_player = 0
         current_phase = 1 - current_phase
+        self.checkbox_clear()
 
+    def checkbox_clear(self):
+        global checkbox
+        for box in checkbox:
+            for i in range(box.number):
+                box.value_ref[i] = 0
 
 screen_actions = ScreenActions()
 
@@ -222,7 +223,6 @@ role_sel_btn = Button(30, 200, 300, 50, "Modifica ruoli disponibili", GRAY, DARK
                     action=partial(screen_actions.change_screen, role_selection_screen))
 player_sel_btn = Button(70, 280, 220, 50, "Imposta giocatori", GRAY, DARK_BLUE, 
                     action=None)
-# start_btn = Button(110, 480, 140, 50, "Inizia", GRAY, DARK_BLUE, action=None)
 
 btn_contadini = Button(40, 100, 120, 50, "Contadini", WHITE, WHITE)
 btn_lupi = Button(40, 150, 120, 50, "Lupi", WHITE, WHITE)
@@ -231,8 +231,6 @@ btn_veggente = Button(40, 250, 120, 50, "Veggente", WHITE, WHITE)
 btn_medium = Button(40, 300, 120, 50, "Medium", WHITE, WHITE)
 btn_indemoniato = Button(40, 350, 120, 50, "Indemoniato", WHITE, WHITE)
 btn_curioso = Button(40, 400, 120, 50, "Curioso", WHITE, WHITE)
-
-# next_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, action=None)
 
 next_screen_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
                      action=partial(screen_actions.next_screen))
@@ -243,20 +241,34 @@ next_player_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE,
 back_btn = Button(110, 480, 140, 50, "OK", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, start_screen))
 
-# Selettori dei ruoli
-# starting_values = [3, 3, 1, 1, 1, 0, 0] # contadini, lupi, guardiano. veggente, medium, indemoniato, curioso
+start_btn = Button(90, 480, 180, 50, "Nuova partita", GRAY, DARK_BLUE, 
+                    action=partial(screen_actions.change_screen, start_screen))
 
-value_contadini = 4
+divination_btn = Button(100, 480, 160, 50, "Divinazione", GRAY, DARK_BLUE, 
+                    # action=partial(screen_actions.divination_screen))
+                    action=partial(screen_actions.change_screen, divination_screen))
+
+night_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
+                    # action=partial(screen_actions.divination_screen))
+                    action=partial(screen_actions.change_screen, night_phase))
+
+night_start_btn = Button(110, 480, 140, 50, "Avanti", GRAY, DARK_BLUE, 
+                    # action=partial(screen_actions.divination_screen))
+                    action=partial(screen_actions.change_screen, night_phase_start))
+
+checkbox = []
+for i in range(len(player_names)):
+    checkbox.append(GroupOfCheckbox(40, 200, number=i+1)) # il temine i-esimo avrà i+1 caselle
+
+# Selettori dei ruoli
+
+value_contadini = 5
 value_lupi = 1
 value_guardiano = 0
 value_veggente = 0
 value_medium = 0
 value_indemoniato = 0
 value_curioso = 0
-
-# value_ref = []*len(starting_values)
-# for i in range(len(starting_values)):
-#     value_ref[i] = [starting_values[i]]
 
 value_contadini_ref = [value_contadini]
 value_lupi_ref = [value_lupi]
@@ -274,38 +286,24 @@ selector_medium = NumberSelector(180, 300, value_medium_ref, name='Medium')
 selector_indemoniato = NumberSelector(180, 350, value_indemoniato_ref, name='Indemoniato')
 selector_curioso = NumberSelector(180, 400, value_curioso_ref, name='Curioso')
 
-
+inactive_roles = ['Contadino', 'Indemoniato', 'Curioso']
+targeted_indexes = []
+protected_indexes = []
+divinated_indexes = []
+medium_indexes = []
+voted_indexes = []
 
 # Classe Game: Funzioni disegno schermate
+# RUOLI IMPLEMENTATI: Lupo, Guardiano, Veggente, Medium, Indemoniato, Curioso
 class Game:
 
     def __init__(self, player_names):
         self.players = [Player(name) for name in player_names]
         self.role_assigned = False
-
-        # RUOLI IMPLEMENTATI: Lupo, Guardiano, Veggente, Medium, Indemoniato, Curioso
-        # self.roles = ['Lupo', 'Lupo', 'Veggente', 'Guardiano', 'Medium', 'Contadino']
-        # self.roles = ['Lupo', 'Lupo', 'Veggente', 'Guardiano', 'Contadino', 'Contadino']
-        # self.roles = ['Lupo', 'Medium', 'Contadino']
-
-        # self.roles = []
-        # for i in range(0, value_contadini, 1):
-        #     self.roles.append('Contadino')
-        # for i in range(0, value_lupi, 1):
-        #     self.roles.append('Lupo')
-        # for i in range(0, value_guardiano, 1):
-        #     self.roles.append('Guardiano')
-        # for i in range(0, value_veggente, 1):
-        #     self.roles.append('Veggente')
-        # for i in range(0, value_medium, 1):
-        #     self.roles.append('Medium')
-        # for i in range(0, value_indemoniato, 1):
-        #     self.roles.append('Indemoniato')
-        # for i in range(0, value_curioso, 1):
-        #     self.roles.append('Curioso')
-        
-        # print(f"Ruoli in gioco: {self.roles}")
-        # self.assign_roles()
+        self.round_count = 1
+        self.ballot = None
+        self.lynched = None
+        self.game_over = False
 
     def assign_roles(self):
         if self.role_assigned is False:
@@ -326,7 +324,6 @@ class Game:
                 self.roles.append('Curioso')
             
             print(f"Ruoli in gioco: {self.roles}")
-            # self.assign_roles()
 
             roles = random.sample(self.roles, len(self.players))
             for player, role in zip(self.players, roles):
@@ -341,6 +338,10 @@ class Game:
         return [p for p in self.players if not p.alive]
 
     def draw_start_screen(self):
+        global current_player, current_phase
+        current_player = 0
+        current_phase = 0
+
         SCREEN.fill(WHITE)
         title = FONT.render("Benvenuti a Lupus!", True, BLACK)
         SCREEN.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
@@ -378,7 +379,6 @@ class Game:
         SCREEN.fill(WHITE)
 
         if current_phase == 0:
-            # current_phase =+ 1
             title1 = FONT.render(f"{player.name},", True, BLACK)
             title2 = FONT.render("prosegui per", True, BLACK)
             title3 = FONT.render("vedere il tuo ruolo", True, BLACK)
@@ -387,7 +387,6 @@ class Game:
             SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
             next_player_btn.draw(SCREEN)
         else:
-            # current_phase = 0
             title1 = FONT.render(f"{player.name},", True, BLACK)
             title2 = FONT.render("il tuo ruolo è:", True, BLACK)
             title3 = FONT.render(f"{player.role}", True, BLACK)
@@ -396,220 +395,324 @@ class Game:
             SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
             next_player_btn.draw(SCREEN)
 
-    def draw_night_phase_start_screen(self):
+    def draw_divination_screen(self):
         SCREEN.fill(WHITE)
-        title1 = FONT.render("Tutti chiudono gli", True, BLACK)
-        title2 = FONT.render("occhi 30 sec, mentre", True, BLACK)
-        title3 = FONT.render("i lupi discutono", True, BLACK)
+
+        divinated_player = None
+        for player in self.players:
+            if player.divinated is True:
+                divinated_player = player
+                break
+
+        title1 = FONT.render(f"{divinated_player.name}", True, BLACK)
+        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        if divinated_player.role == 'Lupo':
+            title2 = FONT.render("è un Lupo!", True, BLACK)
+        else:
+            title2 = FONT.render("NON è un Lupo!", True, BLACK)
+            
+        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+
+        night_btn.draw(SCREEN)
+
+    def draw_night_phase_start_screen(self):
+
+        self.check_game_over()
+        self.lynched = None
+
+        SCREEN.fill(WHITE)
+        title1 = FONT.render("È notte. Tutti chiudono", True, BLACK)
+        title2 = FONT.render("gli occhi 30 secondi,", True, BLACK)
+        title3 = FONT.render("mentre i lupi discutono", True, BLACK)
         SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
         SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
         SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
         next_screen_btn.draw(SCREEN)
 
     def draw_night_phase(self):
-        global current_player
-        player = self.players[current_player]
-        SCREEN.fill(WHITE)
+        global current_player, current_phase
+        global targeted_indexes, protected_indexes, divinated_indexes, medium_indexes
+        global alive_players
 
-        global current_phase
+        player = self.get_alive_players()[current_player]
+        alive_players = len(self.get_alive_players())
+
+        SCREEN.fill(WHITE)
 
         if current_phase == 0:
 
-            title = FONT.render(f"{player.name}, clicca per proseguire", True, BLACK)
-            SCREEN.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+            title1 = FONT.render(f"{player.name},", True, BLACK)
+            SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+            title2 = FONT.render("clicca per proseguire", True, BLACK)
+            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
             next_player_btn.draw(SCREEN)
 
         else:
             
-            title1 = FONT.render(f"{player.name}, il tuo ruolo è: {player.role}", True, BLACK)
+            title1 = FONT.render(f"{player.role}", True, BLACK)
             SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
 
             # CONTADINI, INDEMONIATO, CURIOSO
-            inactive_roles = ['Contadino', 'Indemoniato', 'Curioso']
             if player.role in inactive_roles:
                 if player.alive is True:
-                    title2 = FONT.render("Torna a dormire", True, BLACK)
-                else:
-                    title2 = FONT.render("Ormai dormi per sempre", True, BLACK)
-                SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
-
+                    title3 = FONT.render("Torna a dormire", True, BLACK)
+                next_player_btn.draw(SCREEN)
+            
             # LUPI MANNARI
             if player.role == 'Lupo':
                 if player.alive is True:
                     title1 = FONT.render("Scegli una vittima", True, BLACK)
-                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
                     
                     targets = [p for p in self.get_alive_players() if p.role != 'Lupo']
-                    targets_name = []*len(targets)
-                    
-                    targets_status = GroupOfCheckbox(40, 150, number=len(targets))
+                    len_box = len(targets)-1
+                    checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(targets):
-                        # print(f"{i+1}. {p.name}")
-                        targets_name[i] = Button(90, 150 + i*20, 120, 50, f"{p.name}", WHITE, WHITE)
+                        name = FONT.render(f"{p.name}", True, BLACK)
+                        SCREEN.blit(name, (90, 203 + i*42))
+                    
+                    targeted_indexes = checkbox[len_box].get_values()
 
-
-
-                    # SALVARE IL TARGETED!!!!!!!!!!!!
-
-                    victim = targets[index]
-                    victim.targeted = True
-                else:
-                    print("Sei morto. Le tue vittime verranno a prenderti")
-                os.system('cls' if os.name == 'nt' else 'clear')
+                    for i, p in enumerate(targets):
+                        if targeted_indexes[i] == 0:
+                            p.targeted = False
+                        elif targeted_indexes[i] == 1:
+                            p.targeted = True
+                next_player_btn.draw(SCREEN)
 
             # GUARDIANO
             if player.role == 'Guardiano':
                 if player.alive is True:
-                    print("Guardiano, scegli chi vuoi proteggere")
+                    title1 = FONT.render("Scegli chi proteggere", True, BLACK)
+                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+
                     targets = [p for p in self.get_alive_players() if p.just_protected is False]
+                    len_box = len(targets)-1
+                    checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(targets):
-                        print(f"{i+1}. {p.name}")
-                    try:
-                        index = int(input("Inserisci il numero del giocatore da proteggere: "))
-                        index -= 1
-                    except:
-                        print("Input non valido, verrà scelto in automatico il primo")
-                        index = 0
-                    safe_player = targets[index]
-                    safe_player.protected = True
-                else:
-                    print('Sei morto, proteggi i fantasmi')
-                    time.sleep(3)
-                os.system('cls' if os.name == 'nt' else 'clear')
+                        name = FONT.render(f"{p.name}", True, BLACK)
+                        SCREEN.blit(name, (90, 203 + i*42))
+
+                    protected_indexes = checkbox[len_box].get_values()
+
+                    for i, p in enumerate(targets):
+                        if protected_indexes[i] == 0:
+                            p.protected = False
+                        elif protected_indexes[i] == 1:
+                            p.protected = True
+                next_player_btn.draw(SCREEN)
 
             # VEGGENTE
             if player.role == 'Veggente':
                 if player.alive is True:
-                    print("Veggente, scegli un giocatore da scoprire:")
+                    title1 = FONT.render("Scegli chi divinare", True, BLACK)
+                    SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+
                     others = [p for p in self.get_alive_players() if p.role != 'Veggente']
+                    len_box = len(others)-1
+                    checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(others):
-                        print(f"{i+1}. {p.name}")
-                    choice = int(input("Numero del giocatore da scrutare: "))
-                    choice -= 1
-                    # print(f"{others[choice].name} è un {others[choice].role}")
-                    if others[choice].role == "Lupo":
-                        print(f"{others[choice].name} è un Lupo")
-                    else:
-                        print(f"{others[choice].name} NON è un Lupo")
-                else:
-                    print("Sei morto")
-                time.sleep(3)
-                os.system('cls' if os.name == 'nt' else 'clear')
+                        name = FONT.render(f"{p.name}", True, BLACK)
+                        SCREEN.blit(name, (90, 203 + i*42))
+                    
+                    divinated_indexes = checkbox[len_box].get_values()
+
+                    for i, p in enumerate(others):
+                        if divinated_indexes[i] == 0:
+                            p.divinated = False
+                        elif divinated_indexes[i] == 1:
+                            p.divinated = True
+                    divination_btn.draw(SCREEN)
 
             # MEDIUM
             if player.role == 'Medium':
                 if player.alive is True:
-                    if round_count > 1 :
+                    if self.round_count > 1 :
+                        title1 = FONT.render("Scegli chi divinare", True, BLACK)
+                        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
+
                         others = [p for p in self.get_dead_players() if p.role != 'Medium']
-                        print("Medium, scegli un giocatore da scoprire:")
+                        len_box = len(others)-1
+                        checkbox[len_box].draw(SCREEN)
                         for i, p in enumerate(others):
-                            print(f"{i+1}. {p.name}")
-                        choice = int(input("Numero del giocatore da scrutare: "))
-                        choice -= 1
-                        # print(f"{others[choice].name} è un {others[choice].role}")
-                        if others[choice].role == "Lupo":
-                            print(f"{others[choice].name} è un Lupo")
-                        else:
-                            print(f"{others[choice].name} NON è un Lupo")
+                            name = FONT.render(f"{p.name}", True, BLACK)
+                            SCREEN.blit(name, (90, 203 + i*42))
+                        
+                        medium_indexes = checkbox[len_box].get_values()
+
+                        for i, p in enumerate(others):
+                            if medium_indexes[i] == 0:
+                                p.medium = False
+                            elif divinated_indexes[i] == 1:
+                                p.medium = True
+
+                        divination_btn.draw(SCREEN)
                     else:
-                        print("Vai al bar e aspetta la prossima notte")
-                else:
-                    print("Sei morto")
-                time.sleep(3)
-                os.system('cls' if os.name == 'nt' else 'clear')
+                        title2 = FONT.render("Aspetta la prossima notte", True, BLACK)
+                        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+                        next_player_btn.draw(SCREEN)   
 
+    def draw_day_phase(self):
+        global alive_players
+        SCREEN.fill(WHITE)
+        title1 = FONT.render("È giorno.", True, BLACK)
 
-
-    def day_phase(self, round_count):
-        print("\n--- GIORNO ---")
-
-        for player in self.get_alive_players():
+        for player in self.players:
             if player.targeted is True:
                 if player.protected is True:
-                    print("Nessuno è stato ucciso nella notte")
+                    title2 = FONT.render("Nessuno è stato ucciso", True, BLACK)
+                    SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+
                 else:
-                    print(f"Purtroppo {player.name} non ha superato la notte")
+                    title2 = FONT.render(f"{player.name} sei morto", True, BLACK)
+                    SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
                     player.alive = False
 
-        input("Discussione tra i giocatori... premi INVIO per proseguire")
-        # time.sleep(5)
-        print("\nÈ ora di votare per il linciaggio.")
-        votes = {}
-        alive = self.get_alive_players()
-        for voter in alive:
-            print(f"\n{voter.name}, scegli chi votare:")
-            options = [p for p in alive if p != voter]
-            for i, p in enumerate(options):
-                print(f"{i}. {p.name}")
-            choice = int(input("Numero del giocatore da votare: "))
-            voted = options[choice]
-            votes[voted.name] = votes.get(voted.name, 0) + 1
+        title3 = FONT.render("Prosegui per andare ai voti", True, BLACK)
 
-        # Determina chi ha più voti
-        max_votes = max(votes.values())
-        possible = [name for name, count in votes.items() if count == max_votes]
-        lynched_name = random.choice(possible)
-        for p in self.players:
-            if p.name == lynched_name:
-                p.alive = False
-                print(f"{lynched_name} è stato linciato!")
-                break
+        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 200))
+
+        alive_players = len(self.get_alive_players())
+        next_screen_btn.draw(SCREEN)
+
+    def draw_day_phase_vote(self):
+
+        self.check_game_over()
+
+        global current_player, current_phase
+        global alive_players
+        global voted_indexes
+        current_phase = 1
+
+        SCREEN.fill(WHITE)
+
+        alive = self.get_alive_players()
+        voter = alive[current_player]
+
+        elegible = alive
+        title1 = FONT.render("Votazioni per l'eliminazione:", True, BLACK)
         
-        for player in self.get_alive_players():
+        if self.ballot is not None:
+            elegible = self.ballot
+            print(elegible, self.ballot)
+            title1 = FONT.render("Votazioni di ballottaggio:", True, BLACK)
+            
+        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+
+        title2 = FONT.render(f"{voter.name}, scegli chi votare:", True, BLACK)
+        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+        
+        options = [p for p in elegible if p != voter]
+        len_box = len(options)-1
+        checkbox[len_box].draw(SCREEN)
+        for i, p in enumerate(options):
+            name = FONT.render(f"{p.name}", True, BLACK)
+            SCREEN.blit(name, (90, 203 + i*42))
+        
+        voted_indexes = checkbox[len_box].get_values()
+
+        if voter.vote_done is False:
+            for i, p in enumerate(options):
+                if voted_indexes[i] == 1:
+                    p.vote += 1
+                    voter.vote_done = True
+
+        next_player_btn.draw(SCREEN)  
+
+    def vote_outcome(self):
+        global alive_players
+        global current_player, current_screen
+
+        SCREEN.fill(WHITE)
+
+        max_votes = 0
+        possible = []
+        possible_names = []
+        for p in self.players:
+            print(p.name, p.vote, max_votes)
+            if p.vote > max_votes:
+                max_votes = p.vote
+        for p in self.players:
+            if p.vote == max_votes:
+                possible.append(p)
+                possible_names.append(p.name) 
+        print(len(possible), possible_names)
+
+        if len(possible) == 1: 
+            lynched_name = possible[0].name
+            self.lynched = lynched_name
+            for p in self.players:
+                if p.name == lynched_name:
+                    p.alive = False
+
+            alive_players = len(self.get_alive_players())
+        else:
+            self.ballot = possible
+            print(self.ballot)
+            for p in self.players:
+                p.vote = 0
+                p.vote_done = False
+
+            current_player = 0
+            current_screen = day_phase_vote
+
+
+    def draw_vote_outcome_screen(self): # DA IMPLEMENTARE: BALLOTTAGGIO SUL PAREGGIO
+            
+        SCREEN.fill(WHITE)
+
+        if self.lynched is None:
+            print("chiamata")
+            self.ballot = None
+            self.vote_outcome()
+
+        title1 = FONT.render(f"{self.lynched} è stato linciato!", True, BLACK)
+        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        
+        for player in self.players:
+            player.vote = 0
+            player.vote_done = False
             if player.targeted is True:
                 player.targeted = False
+            if player.just_protected is True:
+                player.just_protected = False
             if player.protected is True:
                 player.protected = False
                 player.just_protected = True
+            if player.divinated is True:
+                player.divinated = False
+            if player.medium is True:
+                player.medium = False
+
+        self.round_count += 1
+        night_start_btn.draw(SCREEN)
 
     def check_game_over(self):
+        global current_screen
+
         wolves = [p for p in self.get_alive_players() if p.role == 'Lupo' or p.role =='Indemoniato']
         villagers = [p for p in self.get_alive_players() if p.role != 'Lupo']
         if not wolves:
-            print("\nI CONTADINI VINCONO!")
-            return True
+            self.check_game_over = 'VITTORIA CONTADINI'
+            current_screen = game_over_screen
         elif len(wolves) >= len(villagers):
-            print("\nI LUPI MANNARI VINCONO!")
-            return True
-        return False
-
-    def play(self):
-        round_count = 1
-        while not self.check_game_over():
-            print(f"\n======= ROUND {round_count} =======")
-            self.night_phase(round_count)
-            if self.check_game_over():
-                break
-            self.day_phase(round_count)
-            if self.check_game_over():
-                break
-            round_count += 1
-
-
-
-
-
-
-
-
-
-
-
-
-# # Avvio del gioco
-# print("Benvenuti a Lupus!")
-
-# # player_names = ["Albu","Gabri","Marco","Chiara", "Dani", "Fede"]
-# player_names = ["A", "B", "C"]
-# # for i in range(6):
-# #     name = input(f"Inserisci il nome del giocatore {i + 1}: ")
-# #     player_names.append(name)
+            self.check_game_over = 'VITTORIA lUPI'
+            current_screen = game_over_screen
+        
+    def draw_game_over_screen(self):
+        SCREEN.fill(WHITE)
+        if self.check_game_over == 'VITTORIA CONTADINI':
+            title1 = FONT.render("I CONTADINI VINCONO!", True, BLACK)
+        elif self.check_game_over == 'VITTORIA LUPI':
+            title1 = FONT.render("I LUPI VINCONO!", True, BLACK)
+        else:
+            title1 = FONT.render("Error", True, BLACK)
+    
+        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+        start_btn.draw(SCREEN)
 
 game = Game(player_names)
-# game.play()
-
-
-
 
 # Main loop
 def main_loop():
@@ -628,8 +731,18 @@ def main_loop():
             game.draw_night_phase_start_screen()
         elif current_screen == night_phase:
             game.draw_night_phase()
+        elif current_screen == divination_screen:
+            game.draw_divination_screen()
+        elif current_screen == day_phase:
+            game.draw_day_phase()
+        elif current_screen == day_phase_vote:
+            game.draw_day_phase_vote()
+        elif current_screen == vote_outcome:
+            game.draw_vote_outcome_screen()
+        elif current_screen == game_over_screen:
+            game.draw_game_over_screen()
         else:
-            print(current_screen)
+            # print(current_screen)
             end_text = FONT.render("Fine!", True, BLACK)
             SCREEN.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 2))
 
@@ -659,16 +772,71 @@ def main_loop():
                 next_screen_btn.handle_event(event)
 
             elif current_screen == night_phase:
-                next_player_btn.handle_event(event)
+                
+                players = game.players
+                player = players[current_player]
+                current_player_role = player.role
+                
+                global targeted_indexes, protected_indexes, divinated_indexes, medium_indexes
+                
+                handle_next = False
+                handle_div = False
+                if current_player_role == "Lupo" and current_phase==1:
+                    for index in targeted_indexes:
+                        if index == 1:
+                            handle_next = True
+                elif current_player_role == "Guardiano" and current_phase==1:
+                    for index in protected_indexes:
+                        if index == 1:
+                            handle_next = True
+                elif current_player_role == "Veggente" and current_phase==1:
+                    for index in divinated_indexes:
+                        if index == 1:
+                            handle_div = True
+                elif current_player_role == "Medium" and current_phase==1:
+                    for index in medium_indexes:
+                        if index == 1:
+                            handle_div = True
+                elif current_player_role in inactive_roles or current_phase==0:
+                    handle_next = True
+                
+                if current_player_role == "Medium" and game.round_count==1:
+                    handle_next = True
+
+                if handle_next is True: next_player_btn.handle_event(event)
+                if handle_div is True:  divination_btn.handle_event(event)
+
+                # Attivo sempre tutte le checkbox, ma non è un problema, non mi vanno in conflitto, 
+                # le pulisco ogni volta e salvo sempre i dati da un'altra parte
+                for i in range(len(player_names)):
+                    checkbox[i].handle_event(event)
+            
+            elif current_screen == divination_screen:
+                night_btn.handle_event(event)
+
+            elif current_screen == day_phase:
+                next_screen_btn.handle_event(event)
+
+            elif current_screen == day_phase_vote:
+                global voted_indexes
+
+                # Attivo sempre tutte le checkbox, ma non è un problema, non mi vanno in conflitto, 
+                # le pulisco ogni volta e salvo sempre i dati da un'altra parte
+                for i in range(len(player_names)):
+                    checkbox[i].handle_event(event)
+
+                for index in voted_indexes:
+                        if index == 1:
+                            next_player_btn.handle_event(event)
+
+            elif current_screen == vote_outcome:
+                night_start_btn.handle_event(event)
+            
+            elif current_screen == game_over_screen:
+                start_btn.handle_event(event)
 
         pygame.display.flip()
         clock.tick(60)
-
-
-
-
-
-
 
 main_loop()
 
