@@ -8,6 +8,10 @@ import random
 print("Benvenuti a Lupus!")
 pygame.init()
 
+player_names = ["Albu", "Gabri", "Marco", "Chiara", "Dani", "Fede"]
+# player_names = ["A", "B", "C", "D", "E", "F"]
+# player_names = ["A", "B", "C", "D"]
+
 # Dimensioni dello schermo tipo telefono
 WIDTH, HEIGHT = 360, 640
 info = pygame.display.Info()
@@ -20,11 +24,10 @@ scale = min(scale_x, scale_y)  # mantiene proporzioni
 SCREEN = pygame.display.set_mode((REAL_WIDTH, REAL_HEIGHT))
 pygame.display.set_caption("Lupus")
 
-
 # Scaling delle dimensioni
 # scale = 1 # DA COMMENTARE NELLA VERSIONE DA TELEFONO !!!
 n1 = int(30 * scale)
-n2 = int(40 * scale)
+n2 = int(41 * scale)
 n3 = int(50 * scale)
 n4 = int(35 * scale)
 n5 = int(90 * scale)
@@ -82,18 +85,18 @@ class Button:
 class NumberSelector:
     def __init__(self, x, y, value_ref, name):
         self.left_btn = Button(x, y, n1, n2, "<", WHITE, DARK_BLUE, action=self.decrease)
-        self.right_btn = Button(x + 55*scale, y, n1, n2, ">", WHITE, DARK_BLUE, action=self.increase)
+        self.right_btn = Button(x + int(55*scale), y, n1, n2, ">", WHITE, DARK_BLUE, action=self.increase)
         self.value_ref = value_ref
         self.name = name
         self.x = x + n4
-        self.y = y + 3*scale
+        self.y = y + int(3*scale)
 
     def draw(self, surface):
         self.left_btn.draw(surface)
         self.right_btn.draw(surface)
 
         val = FONT.render(str(self.value_ref[0]), True, BLACK)
-        val_rect = val.get_rect(center=(self.x + 5*scale, self.y + 20*scale))
+        val_rect = val.get_rect(center=(self.x + int(5*scale), self.y + int(20*scale)))
         surface.blit(val, val_rect)
 
     def handle_event(self, event):
@@ -129,13 +132,11 @@ class Player:
     def __str__(self):
         return f"{self.name} ({'Alive' if self.alive else 'Dead'}) - {self.role}"
 
-# # player_names = ["Albu","Gabri","Marco","Chiara", "Dani", "Fede"]
-# player_names = ["A", "B", "C", "D"]
+
 # # for i in range(6):
 # #     name = input(f"Inserisci il nome del giocatore {i + 1}: ")
 # #     player_names.append(name)
 
-player_names = ["A", "B", "C", "D", "E", "F"]
 # players_data = [Player(name) for name in player_names]
 alive_players = len(player_names)
 
@@ -152,7 +153,7 @@ class GroupOfCheckbox:
     def draw(self, surface):
         for i in range(self.number):
             label_text = self.checkbox_array[i].text[2:]  # Rimuovi ◯ o ⬤
-            symbol = "X" if self.value_ref[i] == 1 else "◯"
+            symbol = "X" if self.value_ref[i] == 1 else "o"
             self.checkbox_array[i].text = f"{symbol} {label_text}"
             self.checkbox_array[i].draw(surface)
 
@@ -185,6 +186,7 @@ vote_outcome = 6
 
 role_selection_screen = -1
 divination_screen = -2
+medium_screen = -3
 game_over_screen = -5
 
 current_player = 0
@@ -251,7 +253,7 @@ screen_actions = ScreenActions()
 # Pulsanti principali
 role_sel_btn = Button(n1, n11, n13, n3, "Modifica ruoli disponibili", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, role_selection_screen))
-player_sel_btn = Button(70*scale, 280*scale, 220*scale, n3, "Imposta giocatori", GRAY, DARK_BLUE, 
+player_sel_btn = Button(int(70*scale), int(280*scale), int(220*scale), n3, "Imposta giocatori", GRAY, DARK_BLUE, 
                     action=None)
 
 btn_contadini = Button(n2, n6, n7, n3, "Contadini", WHITE, WHITE)
@@ -260,7 +262,7 @@ btn_guardiano = Button(n2, n11, n7, n3, "Guardiano", WHITE, WHITE)
 btn_veggente = Button(n2, n12, n7, n3, "Veggente", WHITE, WHITE)
 btn_medium = Button(n2, n13, n7, n3, "Medium", WHITE, WHITE)
 btn_indemoniato = Button(n2, n14, n7, n3, "Indemoniato", WHITE, WHITE)
-btn_curioso = Button(n2, 400*scale, n7, n3, "Curioso", WHITE, WHITE)
+btn_curioso = Button(n2, int(400*scale), n7, n3, "Curioso", WHITE, WHITE)
 
 next_screen_btn = Button(n9, n16, n10, n3, "Avanti", GRAY, DARK_BLUE, 
                      action=partial(screen_actions.next_screen))
@@ -274,9 +276,13 @@ back_btn = Button(n9, n16, n10, n3, "OK", GRAY, DARK_BLUE,
 start_btn = Button(n5, n16, n15, n3, "Nuova partita", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, start_screen))
 
-divination_btn = Button(n6, n16, 160*scale, n3, "Divinazione", GRAY, DARK_BLUE, 
+divination_btn = Button(n6, n16, int(160*scale), n3, "Divinazione", GRAY, DARK_BLUE, 
                     # action=partial(screen_actions.divination_screen))
                     action=partial(screen_actions.change_screen, divination_screen))
+
+medium_btn = Button(n6, n16, int(160*scale), n3, "Divinazione", GRAY, DARK_BLUE, 
+                    # action=partial(screen_actions.divination_screen))
+                    action=partial(screen_actions.change_screen, medium_screen))
 
 night_btn = Button(n9, n16, n10, n3, "Avanti", GRAY, DARK_BLUE, 
                     # action=partial(screen_actions.divination_screen))
@@ -314,7 +320,7 @@ selector_guardiano = NumberSelector(n15, n11, value_guardiano_ref, name='Guardia
 selector_veggente = NumberSelector(n15, n12, value_veggente_ref, name='Veggente')
 selector_medium = NumberSelector(n15, n13, value_medium_ref, name='Medium')
 selector_indemoniato = NumberSelector(n15, n14, value_indemoniato_ref, name='Indemoniato')
-selector_curioso = NumberSelector(n15, 400*scale, value_curioso_ref, name='Curioso')
+selector_curioso = NumberSelector(n15, int(400*scale), value_curioso_ref, name='Curioso')
 
 inactive_roles = ['Contadino', 'Indemoniato', 'Curioso']
 targeted_indexes = []
@@ -442,6 +448,26 @@ class Game:
             title2 = FONT.render("NON è un Lupo!", True, BLACK)
             
         SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
+
+        night_btn.draw(SCREEN)
+    
+    def draw_medium_screen(self):
+        SCREEN.fill(WHITE)
+
+        medium_player = None
+        for player in self.get_dead_players():
+            if player.medium is True:
+                medium_player = player
+                break
+
+        title1 = FONT.render(f"{medium_player.name}", True, BLACK)
+        SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, n6))
+        if medium_player.role == 'Lupo':
+            title2 = FONT.render("è un Lupo!", True, BLACK)
+        else:
+            title2 = FONT.render("NON è un Lupo!", True, BLACK)
+            
+        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, n8))
 
         night_btn.draw(SCREEN)
 
@@ -573,10 +599,10 @@ class Game:
                         for i, p in enumerate(others):
                             if medium_indexes[i] == 0:
                                 p.medium = False
-                            elif divinated_indexes[i] == 1:
+                            elif medium_indexes[i] == 1:
                                 p.medium = True
 
-                        divination_btn.draw(SCREEN)
+                        medium_btn.draw(SCREEN)
                     else:
                         title2 = FONT.render("Aspetta la prossima notte", True, BLACK)
                         SCREEN.blit(title2, (REAL_WIDTH // 2 - title2.get_width() // 2, n8))
@@ -625,7 +651,6 @@ class Game:
         
         if self.ballot is not None:
             elegible = self.ballot
-            print(elegible, self.ballot)
             title1 = FONT.render("Votazioni di ballottaggio:", True, BLACK)
             
         SCREEN.blit(title1, (REAL_WIDTH // 2 - title1.get_width() // 2, n6))
@@ -638,7 +663,7 @@ class Game:
         checkbox[len_box].draw(SCREEN)
         for i, p in enumerate(options):
             name = FONT.render(f"{p.name}", True, BLACK)
-            SCREEN.blit(name, (n5, 203 + i*n18))
+            SCREEN.blit(name, (n5, n17 + i*n18))
         
         voted_indexes = checkbox[len_box].get_values()
 
@@ -660,14 +685,12 @@ class Game:
         possible = []
         possible_names = []
         for p in self.players:
-            print(p.name, p.vote, max_votes)
             if p.vote > max_votes:
                 max_votes = p.vote
         for p in self.players:
             if p.vote == max_votes:
                 possible.append(p)
                 possible_names.append(p.name) 
-        print(len(possible), possible_names)
 
         if len(possible) == 1: 
             lynched_name = possible[0].name
@@ -679,7 +702,6 @@ class Game:
             alive_players = len(self.get_alive_players())
         else:
             self.ballot = possible
-            print(self.ballot)
             for p in self.players:
                 p.vote = 0
                 p.vote_done = False
@@ -693,7 +715,6 @@ class Game:
         SCREEN.fill(WHITE)
 
         if self.lynched is None:
-            print("chiamata")
             self.ballot = None
             self.vote_outcome()
 
@@ -763,6 +784,8 @@ def main_loop():
             game.draw_night_phase()
         elif current_screen == divination_screen:
             game.draw_divination_screen()
+        elif current_screen == medium_screen:
+            game.draw_medium_screen()
         elif current_screen == day_phase:
             game.draw_day_phase()
         elif current_screen == day_phase_vote:
@@ -803,7 +826,7 @@ def main_loop():
 
             elif current_screen == night_phase:
                 
-                players = game.players
+                players = game.get_alive_players()
                 player = players[current_player]
                 current_player_role = player.role
                 
@@ -811,6 +834,7 @@ def main_loop():
                 
                 handle_next = False
                 handle_div = False
+                handle_med = False
                 if current_player_role == "Lupo" and current_phase==1:
                     for index in targeted_indexes:
                         if index == 1:
@@ -823,10 +847,10 @@ def main_loop():
                     for index in divinated_indexes:
                         if index == 1:
                             handle_div = True
-                elif current_player_role == "Medium" and current_phase==1:
+                elif current_player_role == "Medium" and current_phase==1 and game.round_count>1:
                     for index in medium_indexes:
                         if index == 1:
-                            handle_div = True
+                            handle_med = True
                 elif current_player_role in inactive_roles or current_phase==0:
                     handle_next = True
                 
@@ -835,6 +859,7 @@ def main_loop():
 
                 if handle_next is True: next_player_btn.handle_event(event)
                 if handle_div is True:  divination_btn.handle_event(event)
+                if handle_med is True: medium_btn.handle_event(event)
 
                 # Attivo sempre tutte le checkbox, ma non è un problema, non mi vanno in conflitto, 
                 # le pulisco ogni volta e salvo sempre i dati da un'altra parte
@@ -842,6 +867,9 @@ def main_loop():
                     checkbox[i].handle_event(event)
             
             elif current_screen == divination_screen:
+                night_btn.handle_event(event)
+
+            elif current_screen == medium_screen:
                 night_btn.handle_event(event)
 
             elif current_screen == day_phase:
