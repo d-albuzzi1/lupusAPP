@@ -17,6 +17,9 @@ scale_x = REAL_WIDTH / WIDTH
 scale_y = REAL_HEIGHT / HEIGHT
 scale = min(scale_x, scale_y)  # mantiene proporzioni
 
+# WIDHT = REAL_WIDTH # DA SCOMMENTARE NELLA VERSIONE DA TELEFONO !!!
+# HEIGHT = REAL_HEIGHT
+
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Lupus")
 
@@ -41,6 +44,9 @@ n15 = int(180 * scale)
 n16 = int(480 * scale)
 n17 = int(203 * scale)
 n18 = int(42 * scale)
+n19 = int(135 * scale)
+n20 = int(170 * scale)
+
 
 # Colori
 WHITE = (255, 255, 255)
@@ -248,7 +254,7 @@ screen_actions = ScreenActions()
 # Pulsanti principali
 role_sel_btn = Button(n1, n11, n13, n3, "Modifica ruoli disponibili", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, role_selection_screen))
-player_sel_btn = Button(70*scale, 280, 220, n3, "Imposta giocatori", GRAY, DARK_BLUE, 
+player_sel_btn = Button(70*scale, 280*scale, 220*scale, n3, "Imposta giocatori", GRAY, DARK_BLUE, 
                     action=None)
 
 btn_contadini = Button(n2, n6, n7, n3, "Contadini", WHITE, WHITE)
@@ -410,16 +416,16 @@ class Game:
             title2 = FONT.render("prosegui per", True, BLACK)
             title3 = FONT.render("vedere il tuo ruolo", True, BLACK)
             SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, n6))
-            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-            SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, n19))
+            SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, n20))
             next_player_btn.draw(SCREEN)
         else:
             title1 = FONT.render(f"{player.name},", True, BLACK)
             title2 = FONT.render("il tuo ruolo è:", True, BLACK)
             title3 = FONT.render(f"{player.role}", True, BLACK)
             SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, n6))
-            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-            SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+            SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, n19))
+            SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, n20))
             next_player_btn.draw(SCREEN)
 
     def draw_divination_screen(self):
@@ -452,8 +458,8 @@ class Game:
         title2 = FONT.render("gli occhi 30 secondi,", True, BLACK)
         title3 = FONT.render("mentre i lupi discutono", True, BLACK)
         SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, n6))
-        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-        SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+        SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, n19))
+        SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, n20))
         next_screen_btn.draw(SCREEN)
 
     def draw_night_phase(self):
