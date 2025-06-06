@@ -46,7 +46,8 @@ n17 = int(203 * scale)
 n18 = int(42 * scale)
 n19 = int(135 * scale)
 n20 = int(170 * scale)
-
+n21 = int(120 * scale)
+n22 = int(160 * scale)
 
 # Colori
 WHITE = (255, 255, 255)
