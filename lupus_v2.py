@@ -181,8 +181,9 @@ day_phase_vote = 5
 vote_outcome = 6
 
 role_selection_screen = -1
-divination_screen = -2
-medium_screen = -3
+player_selection_screen = -2
+divination_screen = -3
+medium_screen = -4
 game_over_screen = -10
 
 current_player = 0
@@ -209,10 +210,6 @@ class ScreenActions:
         global current_screen
         if current_screen == role_selection_screen:
             self.sync_role_values()
-        if current_screen == divination_screen:
-            self.next_player_screen()
-        if current_screen == medium_screen:
-            self.next_player_screen()
         
         current_screen = screen_number
 
@@ -226,15 +223,18 @@ class ScreenActions:
         global current_screen, current_phase, current_player, alive_players
         # print(current_screen)
         # print(current_player)
+
+        if current_screen == divination_screen or current_screen == medium_screen:
+            current_screen = night_phase
+
         if current_phase == 1:
-            #if current_player <  len(player_names)-1:
             if current_player <  alive_players-1:
                 current_player += 1
             else:
-                # print(current_player)
                 current_screen += 1
                 current_player = 0
         current_phase = 1 - current_phase
+
         self.checkbox_clear()
 
     def checkbox_clear(self):
@@ -249,7 +249,7 @@ screen_actions = ScreenActions()
 role_sel_btn = Button(30, 200, 300, 50, "Modifica ruoli disponibili", GRAY, DARK_BLUE, 
                     action=partial(screen_actions.change_screen, role_selection_screen))
 player_sel_btn = Button(70, 280, 220, 50, "Imposta giocatori", GRAY, DARK_BLUE, 
-                    action=None)
+                    action=partial(screen_actions.change_screen, player_selection_screen))
 
 btn_contadini = Button(40, 100, 120, 50, "Contadini", WHITE, WHITE)
 btn_lupi = Button(40, 150, 120, 50, "Lupi", WHITE, WHITE)
@@ -293,11 +293,11 @@ for i in range(len(player_names)):
 
 # Selettori dei ruoli
 
-value_contadini = 5
+value_contadini = 2
 value_lupi = 1
-value_guardiano = 0
-value_veggente = 0
-value_medium = 0
+value_guardiano = 1
+value_veggente = 1
+value_medium = 1
 value_indemoniato = 0
 value_curioso = 0
 
@@ -378,7 +378,6 @@ class Game:
 
         SCREEN.fill(WHITE)
         title = FONT.render("Benvenuti a Lupus!", True, BLACK)
-        # SCREEN.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
         self.draw_centered_title(title, 100)
 
         role_sel_btn.draw(SCREEN)
@@ -388,7 +387,6 @@ class Game:
     def draw_role_selection_screen(self):
         SCREEN.fill(WHITE)
         title = FONT.render("Selezione ruoli disponibili", True, BLACK)
-        # SCREEN.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
         self.draw_centered_title(title, 50)
 
         btn_contadini.draw(SCREEN)
@@ -408,35 +406,44 @@ class Game:
 
         back_btn.draw(SCREEN)
 
+    def draw_player_selection_screen(self):
+        SCREEN.fill(WHITE)
+
+        title = FONT.render("Giocatori", True, BLACK)
+        self.draw_centered_title(title, 50)
+
+        for i, p in enumerate(self.players):
+            name = FONT.render(f"{p.name}", True, BLACK)
+            SCREEN.blit(name, (scaled_coord(40, 100 + i*42)))
+
+        back_btn.draw(SCREEN)
+
+
     def draw_role_reveal_screen(self):
         global current_phase, current_player
         self.assign_roles()
         player = self.players[current_player]
         SCREEN.fill(WHITE)
 
+        title1 = FONT.render(f"{player.name},", True, BLACK)
+        self.draw_centered_title(title1, 100)
+
         if current_phase == 0:
-            title1 = FONT.render(f"{player.name},", True, BLACK)
+            
             title2 = FONT.render("prosegui per", True, BLACK)
             title3 = FONT.render("vedere il tuo ruolo", True, BLACK)
-            # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-            # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-            # SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
-            self.draw_centered_title(title1, 100)
+            
             self.draw_centered_title(title2, 135)
             self.draw_centered_title(title3, 170)
 
-            next_player_btn.draw(SCREEN)
         else:
-            title1 = FONT.render(f"{player.name},", True, BLACK)
             title2 = FONT.render("il tuo ruolo è:", True, BLACK)
             title3 = FONT.render(f"{player.role}", True, BLACK)
-            # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-            # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-            # SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
-            self.draw_centered_title(title1, 100)
+    
             self.draw_centered_title(title2, 135)
             self.draw_centered_title(title3, 170)
-            next_player_btn.draw(SCREEN)
+
+        next_player_btn.draw(SCREEN)
 
     def draw_divination_screen(self):
         SCREEN.fill(WHITE)
@@ -448,17 +455,17 @@ class Game:
                 break
 
         title1 = FONT.render(f"{divinated_player.name}", True, BLACK)
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
         self.draw_centered_title(title1, 100)
+
         if divinated_player.role == 'Lupo':
             title2 = FONT.render("è un Lupo!", True, BLACK)
         else:
             title2 = FONT.render("NON è un Lupo!", True, BLACK)
             
-        # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
         self.draw_centered_title(title2, 150)
 
-        night_btn.draw(SCREEN)
+        # night_btn.draw(SCREEN)
+        next_player_btn.draw(SCREEN)
 
     def draw_medium_screen(self):
         SCREEN.fill(WHITE)
@@ -470,17 +477,17 @@ class Game:
                 break
 
         title1 = FONT.render(f"{medium_player.name}", True, BLACK)
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
         self.draw_centered_title(title1, 100)
+
         if medium_player.role == 'Lupo':
             title2 = FONT.render("è un Lupo!", True, BLACK)
         else:
             title2 = FONT.render("NON è un Lupo!", True, BLACK)
             
-        # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
         self.draw_centered_title(title2, 150)
 
-        night_btn.draw(SCREEN)
+        # night_btn.draw(SCREEN)
+        next_player_btn.draw(SCREEN)
 
     def draw_night_phase_start_screen(self):
 
@@ -491,9 +498,7 @@ class Game:
         title1 = FONT.render("È notte. Tutti chiudono", True, BLACK)
         title2 = FONT.render("gli occhi 30 secondi,", True, BLACK)
         title3 = FONT.render("mentre i lupi discutono", True, BLACK)
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-        # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 135))
-        # SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 170))
+
         self.draw_centered_title(title1, 100)
         self.draw_centered_title(title2, 135)
         self.draw_centered_title(title3, 170)
@@ -512,124 +517,122 @@ class Game:
         if current_phase == 0:
 
             title1 = FONT.render(f"{player.name},", True, BLACK)
-            # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-            self.draw_centered_title(title1, 100)
             title2 = FONT.render("clicca per proseguire", True, BLACK)
-            # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
+
+            self.draw_centered_title(title1, 100)
             self.draw_centered_title(title2, 150)
+
             next_player_btn.draw(SCREEN)
 
         else:
             
-            title1 = FONT.render(f"{player.role}", True, BLACK)
-            # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
+            title1 = FONT.render(f"{player.name} ({player.role})", True, BLACK)
             self.draw_centered_title(title1, 100)
 
             # CONTADINI, INDEMONIATO, CURIOSO
             if player.role in inactive_roles:
                 if player.alive is True:
                     title3 = FONT.render("Torna a dormire", True, BLACK)
+
                 next_player_btn.draw(SCREEN)
             
             # LUPI MANNARI
             if player.role == 'Lupo':
-                if player.alive is True:
-                    title1 = FONT.render("Scegli una vittima", True, BLACK)
-                    # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
-                    self.draw_centered_title(title1, 150)
-                    
-                    targets = [p for p in self.get_alive_players() if p.role != 'Lupo']
-                    len_box = len(targets)-1
-                    checkbox[len_box].draw(SCREEN)
-                    for i, p in enumerate(targets):
-                        name = FONT.render(f"{p.name}", True, BLACK)
-                        SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
-                    
-                    targeted_indexes = checkbox[len_box].get_values()
 
-                    for i, p in enumerate(targets):
-                        if targeted_indexes[i] == 0:
-                            p.targeted = False
-                        elif targeted_indexes[i] == 1:
-                            p.targeted = True
+                title1 = FONT.render("Scegli una vittima", True, BLACK)
+                self.draw_centered_title(title1, 150)
+                
+                targets = [p for p in self.get_alive_players() if p.role != 'Lupo']
+                len_box = len(targets)-1
+                checkbox[len_box].draw(SCREEN)
+                for i, p in enumerate(targets):
+                    name = FONT.render(f"{p.name}", True, BLACK)
+                    SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
+                
+                targeted_indexes = checkbox[len_box].get_values()
+
+                for i, p in enumerate(targets):
+                    if targeted_indexes[i] == 0:
+                        p.targeted = False
+                    elif targeted_indexes[i] == 1:
+                        p.targeted = True
+
                 next_player_btn.draw(SCREEN)
 
             # GUARDIANO
             if player.role == 'Guardiano':
-                if player.alive is True:
-                    title1 = FONT.render("Scegli chi proteggere", True, BLACK)
-                    # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
-                    self.draw_centered_title(title1, 150)
 
-                    targets = [p for p in self.get_alive_players() if p.just_protected is False]
-                    len_box = len(targets)-1
-                    checkbox[len_box].draw(SCREEN)
-                    for i, p in enumerate(targets):
-                        name = FONT.render(f"{p.name}", True, BLACK)
-                        SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
+                title1 = FONT.render("Scegli chi proteggere", True, BLACK)
+                self.draw_centered_title(title1, 150)
 
-                    protected_indexes = checkbox[len_box].get_values()
+                targets = [p for p in self.get_alive_players() if p.just_protected is False]
+                len_box = len(targets)-1
+                checkbox[len_box].draw(SCREEN)
+                for i, p in enumerate(targets):
+                    name = FONT.render(f"{p.name}", True, BLACK)
+                    SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
 
-                    for i, p in enumerate(targets):
-                        if protected_indexes[i] == 0:
-                            p.protected = False
-                        elif protected_indexes[i] == 1:
-                            p.protected = True
+                protected_indexes = checkbox[len_box].get_values()
+
+                for i, p in enumerate(targets):
+                    if protected_indexes[i] == 0:
+                        p.protected = False
+                    elif protected_indexes[i] == 1:
+                        p.protected = True
+
                 next_player_btn.draw(SCREEN)
 
             # VEGGENTE
             if player.role == 'Veggente':
-                if player.alive is True:
+
+                title1 = FONT.render("Scegli chi divinare", True, BLACK)
+                self.draw_centered_title(title1, 150)
+
+                others = [p for p in self.get_alive_players() if p.role != 'Veggente']
+                len_box = len(others)-1
+                checkbox[len_box].draw(SCREEN)
+                for i, p in enumerate(others):
+                    name = FONT.render(f"{p.name}", True, BLACK)
+                    SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
+                
+                divinated_indexes = checkbox[len_box].get_values()
+
+                for i, p in enumerate(others):
+                    if divinated_indexes[i] == 0:
+                        p.divinated = False
+                    elif divinated_indexes[i] == 1:
+                        p.divinated = True
+
+                divination_btn.draw(SCREEN)
+
+            # MEDIUM
+            if player.role == 'Medium':
+
+                if self.round_count > 1 :
                     title1 = FONT.render("Scegli chi divinare", True, BLACK)
-                    # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
                     self.draw_centered_title(title1, 150)
 
-                    others = [p for p in self.get_alive_players() if p.role != 'Veggente']
+                    others = [p for p in self.get_dead_players() if p.role != 'Medium']
                     len_box = len(others)-1
                     checkbox[len_box].draw(SCREEN)
                     for i, p in enumerate(others):
                         name = FONT.render(f"{p.name}", True, BLACK)
                         SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
                     
-                    divinated_indexes = checkbox[len_box].get_values()
+                    medium_indexes = checkbox[len_box].get_values()
 
                     for i, p in enumerate(others):
-                        if divinated_indexes[i] == 0:
-                            p.divinated = False
-                        elif divinated_indexes[i] == 1:
-                            p.divinated = True
-                    divination_btn.draw(SCREEN)
+                        if medium_indexes[i] == 0:
+                            p.medium = False
+                        elif medium_indexes[i] == 1:
+                            p.medium = True
 
-            # MEDIUM
-            if player.role == 'Medium':
-                if player.alive is True:
-                    if self.round_count > 1 :
-                        title1 = FONT.render("Scegli chi divinare", True, BLACK)
-                        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 150))
-                        self.draw_centered_title(title1, 150)
+                    medium_btn.draw(SCREEN)
+                else:
+                    title2 = FONT.render("Aspetta la prossima notte", True, BLACK)
+                    self.draw_centered_title(title2, 150)
 
-                        others = [p for p in self.get_dead_players() if p.role != 'Medium']
-                        len_box = len(others)-1
-                        checkbox[len_box].draw(SCREEN)
-                        for i, p in enumerate(others):
-                            name = FONT.render(f"{p.name}", True, BLACK)
-                            SCREEN.blit(name, (scaled_coord(90, 203 + i*42)))
-                        
-                        medium_indexes = checkbox[len_box].get_values()
-                        # print(medium_indexes)
-
-                        for i, p in enumerate(others):
-                            if medium_indexes[i] == 0:
-                                p.medium = False
-                            elif medium_indexes[i] == 1:
-                                p.medium = True
-
-                        medium_btn.draw(SCREEN)
-                    else:
-                        title2 = FONT.render("Aspetta la prossima notte", True, BLACK)
-                        # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
-                        self.draw_centered_title(title2, 150)
-                        next_player_btn.draw(SCREEN)   
+                    next_player_btn.draw(SCREEN)   
 
     def draw_day_phase(self):
         global alive_players
@@ -641,24 +644,20 @@ class Game:
             if player.targeted is True:
                 if player.protected is True:
                     title2 = FONT.render("Nessuno è stato ucciso", True, BLACK)
-                    # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
                     self.draw_centered_title(title2, 150)
 
                 else:
                     title2 = FONT.render(f"{player.name} sei morto", True, BLACK)
-                    # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
                     self.draw_centered_title(title2, 150)
                     player.alive = False
 
         title3 = FONT.render("Prosegui per andare ai voti", True, BLACK)
 
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
-        # SCREEN.blit(title3, (WIDTH // 2 - title3.get_width() // 2, 200))
         self.draw_centered_title(title3, 200)
 
         alive_players = len(self.get_alive_players())
-
         self.single_run_check = False
+
         next_screen_btn.draw(SCREEN)
 
     def draw_day_phase_vote(self):
@@ -680,14 +679,11 @@ class Game:
         
         if self.ballot is not None:
             elegible = self.ballot
-            # print(elegible, self.ballot)
             title1 = FONT.render("Votazioni di ballottaggio:", True, BLACK)
             
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
         self.draw_centered_title(title1, 100)
 
         title2 = FONT.render(f"{voter.name}, scegli chi votare:", True, BLACK)
-        # SCREEN.blit(title2, (WIDTH // 2 - title2.get_width() // 2, 150))
         self.draw_centered_title(title2, 150)
         
         options = [p for p in elegible if p != voter]
@@ -715,16 +711,14 @@ class Game:
 
         max_votes = 0
         possible = []
-        possible_names = []
+        # possible_names = []
         for p in self.players:
-            # print(p.name, p.vote, max_votes)
             if p.vote > max_votes:
                 max_votes = p.vote
         for p in self.players:
             if p.vote == max_votes:
                 possible.append(p)
-                possible_names.append(p.name) 
-        # print(len(possible), possible_names)
+                # possible_names.append(p.name) 
 
         if len(possible) == 1: 
             lynched_name = possible[0].name
@@ -736,7 +730,6 @@ class Game:
             alive_players = len(self.get_alive_players())
         else:
             self.ballot = possible
-            # print(self.ballot)
             for p in self.players:
                 p.vote = 0
                 p.vote_done = False
@@ -749,12 +742,10 @@ class Game:
         SCREEN.fill(WHITE)
 
         if self.lynched is None:
-            # print("chiamata")
             self.ballot = None
             self.vote_outcome()
 
         title1 = FONT.render(f"{self.lynched} è stato linciato!", True, BLACK)
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
         self.draw_centered_title(title1, 100)
         
         if self.single_run_check is False: # ripete il ciclo for solo una volta quando chiamo questa schermata
@@ -785,30 +776,30 @@ class Game:
         wolves_and_ind = [p for p in self.get_alive_players() if p.role == 'Lupo' or p.role =='Indemoniato']
         villagers = [p for p in self.get_alive_players() if p.role != 'Lupo' and p.role !='Indemoniato']
         if not wolves:
-            self.check_game_over = 'VITTORIA CONTADINI'
+            self.game_over = 'VITTORIA CONTADINI'
             current_screen = game_over_screen
         elif len(wolves_and_ind) >= len(villagers):
-            self.check_game_over = 'VITTORIA LUPI'
+            self.game_over = 'VITTORIA LUPI'
             current_screen = game_over_screen
         
     def draw_game_over_screen(self):
         SCREEN.fill(WHITE)
-        if self.check_game_over == 'VITTORIA CONTADINI':
+        if self.game_over == 'VITTORIA CONTADINI':
             title1 = FONT.render("I CONTADINI VINCONO!", True, BLACK)
-        elif self.check_game_over == 'VITTORIA LUPI':
+        elif self.game_over == 'VITTORIA LUPI':
             title1 = FONT.render("I LUPI VINCONO!", True, BLACK)
         else:
             title1 = FONT.render("Error", True, BLACK)
 
-            # Debug
-            global current_screen, current_phase, current_player
-            print(self.check_game_over)
-            print(current_screen, current_phase, current_player)
-            for p in self.players:
-                print(p.name, p.role, p.alive)
-    
-        # SCREEN.blit(title1, (WIDTH // 2 - title1.get_width() // 2, 100))
         self.draw_centered_title(title1, 100)
+
+        title2 = FONT.render("Giocatori rimasti:", True, BLACK)
+        SCREEN.blit(title2, (scaled_coord(40, 150)))
+
+        for i, p in enumerate(self.get_alive_players()):
+            player = FONT.render(f"{p.name} ({p.role})", True, BLACK)
+            SCREEN.blit(player, (scaled_coord(40, 203 + i*42)))
+    
         start_btn.draw(SCREEN)
 
 game = Game(player_names)
@@ -824,6 +815,8 @@ def main_loop():
             game.draw_start_screen()
         elif current_screen == role_selection_screen:
             game.draw_role_selection_screen()
+        elif current_screen == player_selection_screen:
+            game.draw_player_selection_screen()
         elif current_screen == role_reveal_screen:
             game.draw_role_reveal_screen()
         elif current_screen == night_phase_start:
@@ -843,8 +836,7 @@ def main_loop():
         elif current_screen == game_over_screen:
             game.draw_game_over_screen()
         else:
-            # print(current_screen)
-            end_text = FONT.render("Fine!", True, BLACK)
+            end_text = FONT.render("Error", True, BLACK)
             SCREEN.blit(end_text, (WIDTH // 2 - end_text.get_width() // 2, HEIGHT // 2))
 
         for event in pygame.event.get():
@@ -865,6 +857,9 @@ def main_loop():
                 selector_medium.handle_event(event)
                 selector_indemoniato.handle_event(event)
                 selector_curioso.handle_event(event)
+
+            elif current_screen == player_selection_screen:
+                back_btn.handle_event(event)
             
             elif current_screen == role_reveal_screen:
                 next_player_btn.handle_event(event)
@@ -879,28 +874,23 @@ def main_loop():
                 current_player_role = player.role
                 
                 global targeted_indexes, protected_indexes, divinated_indexes, medium_indexes
-                # print(medium_indexes, current_phase, game.round_count)
                 
                 handle_next = False
                 handle_div = False
                 handle_med = False
                 if current_player_role == "Lupo" and current_phase==1:
-                    # checkbox[len(targeted_indexes)].handle_event(event)
                     for index in targeted_indexes:
                         if index == 1:
                             handle_next = True
                 elif current_player_role == "Guardiano" and current_phase==1:
-                    # checkbox[len(protected_indexes)].handle_event(event)
                     for index in protected_indexes:
                         if index == 1:
                             handle_next = True
                 elif current_player_role == "Veggente" and current_phase==1:
-                    # checkbox[len(divinated_indexes)].handle_event(event)
                     for index in divinated_indexes:
                         if index == 1:
                             handle_div = True
                 elif current_player_role == "Medium" and current_phase==1 and game.round_count>1:
-                    # checkbox[len(medium_indexes)].handle_event(event)
                     for index in medium_indexes:
                         if index == 1:
                             handle_med = True
@@ -920,10 +910,12 @@ def main_loop():
                     checkbox[i].handle_event(event)
             
             elif current_screen == divination_screen:
-                night_btn.handle_event(event)
+                # night_btn.handle_event(event)
+                next_player_btn.handle_event(event)
 
             elif current_screen == medium_screen:
-                night_btn.handle_event(event)
+                # night_btn.handle_event(event)
+                next_player_btn.handle_event(event)
 
             elif current_screen == day_phase:
                 next_screen_btn.handle_event(event)
